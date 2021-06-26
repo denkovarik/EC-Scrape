@@ -2,7 +2,8 @@ class Uniprot():
     """
     Class for searching the Uniprot Database for EC Numbers for proteins.
     """
-    def ec_search(self, search_terms):
+    @staticmethod
+    def ec_search(search_terms):
         """
         Performs a search on Uniprot via REST Api give search terms.
         
