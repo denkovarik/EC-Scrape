@@ -19,7 +19,6 @@ class Uniprot_tests(unittest.TestCase):
         self.assertTrue(True)
         
         
-        
     def test_ec_search_types(self):
         """
         Tests the ability of the Uniprot_tests class member function 
@@ -27,15 +26,13 @@ class Uniprot_tests(unittest.TestCase):
         
         :param self: An instance of the Unprot_tests class.
         """
-        db = Uniprot()
-        
         # Testing correct types. Expect no exception.       
         try:
             search_terms = [
                             ("All", "gnat family n-acetyltransferase"),
                             ("All", "geobacillus"),                           
                             ]
-            db.ec_search(search_terms)
+            Uniprot.ec_search(search_terms)
             self.assertTrue(True)
         except:
             self.assertTrue(False)
@@ -47,7 +44,7 @@ class Uniprot_tests(unittest.TestCase):
                             ("All", "gnat family n-acetyltransferase"),
                             ("All", "geobacillus"),                           
                             ))
-            db.ec_search(search_terms)
+            Uniprot.ec_search(search_terms)
             error = False
         except TypeError:
             error = True
@@ -65,7 +62,7 @@ class Uniprot_tests(unittest.TestCase):
                                 ("All", "gnat family n-acetyltransferase"),
                                 ["All", "geobacillus"],                           
                             ]
-            db.ec_search(search_terms)
+            Uniprot.ec_search(search_terms)
             error = False
         except TypeError:
             error = True
@@ -83,7 +80,7 @@ class Uniprot_tests(unittest.TestCase):
                                 ("All", "gnat family n-acetyltransferase"),
                                 ("All", 1),                           
                             ]
-            db.ec_search(search_terms)
+            Uniprot.ec_search(search_terms)
             error = False
         except TypeError:
             error = True
@@ -97,7 +94,7 @@ class Uniprot_tests(unittest.TestCase):
         error = False
         try:
             search_terms = []
-            db.ec_search(search_terms)
+            Uniprot.ec_search(search_terms)
             error = False
         except:
             error = True
