@@ -10,9 +10,72 @@ class Uniprot_tests(unittest.TestCase):
     """
     Runs all tests for the Uniprot class.
     """
-    def test_ec_search_error_checking(self):
+    def test_build_query(self):
         """
-        Tests the Uniprot class member function 'ec_search()' on its ability to 
+        Tests the Uniprot class member function 'build_query()' on its ability
+        to create the url for the Uniprot query from the search terms given.
+        
+        :param self: An instance of the Unprot_tests class.
+        """
+        db = Uniprot()
+        # Testing for protein 'gnat family n-acetyltransferase' and organism 
+        # 'geobacillus'
+        protein_name = "gnat family n-acetyltransferase"
+        organism = "geobacillus"
+        #######################################################################
+        # Testing field 'All' for protein and field 'All' for organism
+        protein_field = "All"
+        organism_field = "All"
+        condition = "AND"
+        search_terms = [
+                            (protein_field, protein_name, condition),
+                            (organism_field, organism),                           
+                        ]
+        expected = 'https://www.uniprot.org/uniprot/?query="gnat+family'
+        expected += '+n-acetyltransferase"+"geobacillus"&sort=score'
+        url = db.build_query(search_terms)
+        self.assertTrue(url == expected)
+        # Testing field 'Protein name' for protein and field 'All' for organism
+        protein_field = "Protein name"
+        organism_field = "All"
+        search_terms = [
+                            (protein_field, protein_name),
+                            (organism_field, organism),                           
+                        ]
+        expected = 'https://www.uniprot.org/uniprot/?query=name%3A"gnat+family'
+        expected += '+n-acetyltransferase"+"geobacillus"&sort=score'
+        url = db.build_query(search_terms)
+        self.assertTrue(url == expected)
+        # Testing field 'All' for protein and field 'Organism' for organism
+        protein_field = "All"
+        organism_field = "Organism"
+        search_terms = [
+                            (protein_field, protein_name),
+                            (organism_field, organism),                           
+                        ]
+        expected = 'https://www.uniprot.org/uniprot/?query="gnat+family'
+        expected += '+n-acetyltransferase"+organism%3A"geobacillus"&sort=score'
+        url = db.build_query(search_terms)
+        self.assertTrue(url == expected)
+        # Testing field 'Protein name' for protein and field 'Organism' for 
+        # organism
+        protein_field = "Protein name"
+        organism_field = "Organism"
+        search_terms = [
+                            (protein_field, protein_name),
+                            (organism_field, organism),                           
+                        ]
+        expected = 'https://www.uniprot.org/uniprot/?query=name%3A"gnat'
+        expected += '+family+n-acetyltransferase"+organism%3A"geobacillus"'
+        expected += '&sort=score'
+        url = db.build_query(search_terms)
+        self.assertTrue(url == expected)
+        #######################################################################
+        
+        
+    def test_build_query_error_checking(self):
+        """
+        Tests the Uniprot class member function 'build_query()' on its ability to 
         perform error checking on the search terms passed into the function.
         
         :param self: An instance of the Unprot_tests class.
@@ -24,7 +87,7 @@ class Uniprot_tests(unittest.TestCase):
                                 ("All", "gnat family n-acetyltransferase"),
                                 ("All", "geobacillus"),                           
                             ]
-            db.ec_search(search_terms)
+            db.build_query(search_terms)
             self.assertTrue(True)
         except:
             self.assertTrue(False)
@@ -36,7 +99,7 @@ class Uniprot_tests(unittest.TestCase):
                             ("All", "gnat family n-acetyltransferase"),
                             ("All", "geobacillus"),                           
                             ))
-            db.ec_search(search_terms)
+            db.build_query(search_terms)
             error = False
         except:
             error = True
@@ -54,7 +117,7 @@ class Uniprot_tests(unittest.TestCase):
                                 ("All", "gnat family n-acetyltransferase"),
                                 ["All", "geobacillus"],                           
                             ]
-            db.ec_search(search_terms)
+            db.build_query(search_terms)
             error = False
         except:
             error = True
@@ -72,7 +135,7 @@ class Uniprot_tests(unittest.TestCase):
                                 ("All", "gnat family n-acetyltransferase"),
                                 ("All", 1),                           
                             ]
-            db.ec_search(search_terms)
+            db.build_query(search_terms)
             error = False
         except:
             error = True
@@ -86,7 +149,7 @@ class Uniprot_tests(unittest.TestCase):
         error = False
         try:
             search_terms = []
-            db.ec_search(search_terms)
+            db.build_query(search_terms)
             error = False
         except:
             error = True
