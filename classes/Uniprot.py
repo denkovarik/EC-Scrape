@@ -7,6 +7,53 @@ class Uniprot():
         Inizializes an instance of the Uniprot Class.
         """
         self.content = ""
+        self.root = "https://www.uniprot.org"
+        
+        
+    def build_query(self, search_terms, sort='score'):
+        """
+        Builds the url for the the Uniprot search query given search terms.
+        
+        :param self: Instance of the Uniprot class
+        :param search_terms: A list of tuples of strings that search as the 
+                             search terms and keywords for the Uniprot query.
+        :param sort: Criteria for how to sort results. Default for Uniprot is 
+                     'score'.
+        :return: The url for the Uniprot search query as a String
+        """
+        # Error checking of search_terms parameter
+        url = ""
+        valid, err_msg = Uniprot.check_search_terms(search_terms)
+        if not valid:
+            raise Exception(err_msg)
+        # Build the query
+        url += self.root + '/uniprot/?query='
+        start = True
+        for i in search_terms:
+            # Right now only the AND condition in implemented
+            condition = "AND"
+            # Check if the condition is specified
+            if len(i) > 2:
+                condition = i[2].upper()
+            # Add condition
+            if not start and condition == "AND":
+                url += '+'
+            start = False
+            # Search term for field 'All'
+            if i[0].lower() == 'all':
+                term = i[1].strip().replace(" ", "+")
+                url += '"' + term + '"'
+            # Search term for field 'Protein name'
+            if i[0].lower() == 'protein name':
+                term = i[1].strip().replace(" ", "+")
+                url += 'name%3A"' + term + '"'
+            # Search term for field 'Organism'
+            if i[0].lower() == 'organism':
+                term = i[1].strip().replace(" ", "+")
+                url += 'organism%3A"' + term + '"'
+        # Define the sort criteria
+        url += '&sort=' + sort
+        return url
         
         
     def ec_search(self, search_terms):
@@ -18,11 +65,6 @@ class Uniprot():
                              search terms and keywords for the Uniprot query.
         :return: A set of EC Numbers.
         """
-        # Error checking of search_terms parameter
-        ec = set(())
-        valid, err_msg = Uniprot.check_search_terms(search_terms)
-        if not valid:
-            raise Exception(err_msg)
             
         return ec
     
