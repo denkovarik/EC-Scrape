@@ -19,6 +19,37 @@ class Uniprot_tests(unittest.TestCase):
         self.assertTrue(True)
         
         
+    def test_field_supported(self):
+        """
+        Tests the function field_supported() on its ability to perform determine
+        which search fields are supported for Uniprot. 
+        
+        :param self: An instance of the Unprot_tests class.
+        """
+        # Testing supported fields
+        search_terms = [
+                        ("All", "gnat family n-acetyltransferase"),
+                        ("Protein name", "gnat family n-acetyltransferase"),
+                        ("Organism", "geobacillus"),                           
+                        ]
+        # Testing field 'All'
+        self.assertTrue(Uniprot.field_supported(search_terms[0][0]))
+        # Testing field 'Protein name'
+        self.assertTrue(Uniprot.field_supported(search_terms[1][0]))
+        # Testing field 'Organism'
+        self.assertTrue(Uniprot.field_supported(search_terms[2][0]))
+        
+        # Testing unsupported fields
+        search_terms = [
+                        ("Pie", "gnat family n-acetyltransferase"),
+                        (1, "gnat family n-acetyltransferase"),
+                        ("animal", "geobacillus"),                           
+                        ]
+        self.assertFalse(Uniprot.field_supported(search_terms[0][0])[0])
+        self.assertFalse(Uniprot.field_supported(search_terms[1][0])[0])
+        self.assertFalse(Uniprot.field_supported(search_terms[2][0])[0])
+        
+        
     def test_ec_search_types(self):
         """
         Tests the ability of the Uniprot_tests class member function 
