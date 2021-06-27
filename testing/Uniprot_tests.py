@@ -10,6 +10,93 @@ class Uniprot_tests(unittest.TestCase):
     """
     Runs all tests for the Uniprot class.
     """
+    def test_ec_search_error_checking(self):
+        """
+        Tests the Uniprot class member function 'ec_search()' on its ability to 
+        perform error checking on the search terms passed into the function.
+        
+        :param self: An instance of the Unprot_tests class.
+        """
+        # Testing correct types. Expect no exception.   
+        db = Uniprot()
+        try:
+            search_terms = [
+                                ("All", "gnat family n-acetyltransferase"),
+                                ("All", "geobacillus"),                           
+                            ]
+            db.ec_search(search_terms)
+            self.assertTrue(True)
+        except:
+            self.assertTrue(False)
+            
+        # Testing incorrect type of search_terms parameter. Expect exception.
+        error = False
+        try:
+            search_terms = set((
+                            ("All", "gnat family n-acetyltransferase"),
+                            ("All", "geobacillus"),                           
+                            ))
+            db.ec_search(search_terms)
+            error = False
+        except:
+            error = True
+        finally:
+            if not error:
+                self.assertTrue(False)
+            else:
+                self.assertTrue(True)
+
+        # Testing incorrect types for elements of search_terms list. 
+        # Expect exception.
+        error = False
+        try:
+            search_terms = [
+                                ("All", "gnat family n-acetyltransferase"),
+                                ["All", "geobacillus"],                           
+                            ]
+            db.ec_search(search_terms)
+            error = False
+        except:
+            error = True
+        finally:
+            if not error:
+                self.assertTrue(False)
+            else:
+                self.assertTrue(True)
+                
+        # Testing incorrect types for elements in tuples for elements of 
+        # search_terms list. Expect exception.
+        error = False
+        try:
+            search_terms = [
+                                ("All", "gnat family n-acetyltransferase"),
+                                ("All", 1),                           
+                            ]
+            db.ec_search(search_terms)
+            error = False
+        except:
+            error = True
+        finally:
+            if not error:
+                self.assertTrue(False)
+            else:
+                self.assertTrue(True)             
+                
+        # Testing empty list for search_terms parameter. Expect exception.
+        error = False
+        try:
+            search_terms = []
+            db.ec_search(search_terms)
+            error = False
+        except:
+            error = True
+        finally:
+            if not error:
+                self.assertTrue(False)
+            else:
+                self.assertTrue(True)
+    
+    
     def test_execution(self):
         """
         Tests the ability of the Uniprot_tests class to run a test.
