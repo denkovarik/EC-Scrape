@@ -50,90 +50,43 @@ class Uniprot_tests(unittest.TestCase):
         self.assertFalse(Uniprot.field_supported(search_terms[2][0])[0])
         
         
-    def test_ec_search_types(self):
+    def test_check_search_types(self):
         """
         Tests the ability of the Uniprot_tests class member function 
         ec_search() to check for correct types of the search fields.
         
         :param self: An instance of the Unprot_tests class.
         """
-        # Testing correct types. Expect no exception.       
-        try:
-            search_terms = [
+        # Testing correct types. Expect True returned.       
+        search_terms = [
                             ("All", "gnat family n-acetyltransferase"),
                             ("All", "geobacillus"),                           
-                            ]
-            Uniprot.ec_search(search_terms)
-            self.assertTrue(True)
-        except:
-            self.assertTrue(False)
+                        ]
+        self.assertTrue(Uniprot.check_search_terms(search_terms)[0])
             
-        # Testing incorrect type of search_terms parameter. Expect exception.
-        error = False
-        try:
-            search_terms = set((
+        # Testing incorrect type of search_terms parameter. Expect False.
+        search_terms = set((
                             ("All", "gnat family n-acetyltransferase"),
                             ("All", "geobacillus"),                           
                             ))
-            Uniprot.ec_search(search_terms)
-            error = False
-        except TypeError:
-            error = True
-        finally:
-            if not error:
-                self.assertTrue(False)
-            else:
-                self.assertTrue(True)
+        self.assertFalse(Uniprot.check_search_terms(search_terms)[0])
 
         # Testing incorrect types for elements of search_terms list. 
-        # Expect exception.
-        error = False
-        try:
-            search_terms = [
-                                ("All", "gnat family n-acetyltransferase"),
-                                ["All", "geobacillus"],                           
-                            ]
-            Uniprot.ec_search(search_terms)
-            error = False
-        except TypeError:
-            error = True
-        finally:
-            if not error:
-                self.assertTrue(False)
-            else:
-                self.assertTrue(True)
-                
+        # Expect False returned.
+        search_terms = [
+                            ("All", "gnat family n-acetyltransferase"), 
+                            ["All", "geobacillus"]
+                        ]
+        self.assertFalse(Uniprot.check_search_terms(search_terms)[0])
+
         # Testing incorrect types for elements in tuples for elements of 
-        # search_terms list. Expect exception.
-        error = False
-        try:
-            search_terms = [
-                                ("All", "gnat family n-acetyltransferase"),
-                                ("All", 1),                           
-                            ]
-            Uniprot.ec_search(search_terms)
-            error = False
-        except TypeError:
-            error = True
-        finally:
-            if not error:
-                self.assertTrue(False)
-            else:
-                self.assertTrue(True)             
+        # search_terms list. Expect False returned.
+        search_terms = [("All", "gnat family n-acetyltransferase"), ("All", 1)]
+        self.assertFalse(Uniprot.check_search_terms(search_terms)[0])            
                 
-        # Testing empty list for search_terms parameter. Expect exception.
-        error = False
-        try:
-            search_terms = []
-            Uniprot.ec_search(search_terms)
-            error = False
-        except:
-            error = True
-        finally:
-            if not error:
-                self.assertTrue(False)
-            else:
-                self.assertTrue(True)
+        # Testing empty list for search_terms parameter. Expect False returned.
+        search_terms = []
+        self.assertFalse(Uniprot.check_search_terms(search_terms)[0])
  
 
 if __name__ == '__main__':
