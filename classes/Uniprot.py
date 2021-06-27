@@ -2,12 +2,29 @@ class Uniprot():
     """
     Class for searching the Uniprot Database for EC Numbers for proteins.
     """
-    def __init__():
+    def __init__(self):
         """
         Inizializes an instance of the Uniprot Class.
         """
         self.content = ""
-    
+        
+        
+    def ec_search(self, search_terms):
+        """
+        Performs a REST API call to Uniport to make a query given search terms.
+        
+        :param self: Instance of the Uniprot class
+        :param search_terms: A list of tuples of strings that search as the 
+                             search terms and keywords for the Uniprot query.
+        :return: A set of EC Numbers.
+        """
+        # Error checking of search_terms parameter
+        ec = set(())
+        valid, err_msg = Uniprot.check_search_terms(search_terms)
+        if not valid:
+            raise Exception(err_msg)
+            
+        return ec
     
     @staticmethod
     def field_supported(field):
