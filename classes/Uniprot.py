@@ -2,6 +2,13 @@ class Uniprot():
     """
     Class for searching the Uniprot Database for EC Numbers for proteins.
     """
+    def __init__():
+        """
+        Inizializes an instance of the Uniprot Class.
+        """
+        self.content = ""
+    
+    
     @staticmethod
     def field_supported(field):
         """
@@ -30,38 +37,38 @@ class Uniprot():
     
     
     @staticmethod
-    def ec_search(search_terms):
+    def check_search_terms(search_terms):
         """
-        Performs a search on Uniprot via REST Api give search terms.
+        Checks the search terms in the parameter 'search_terms' for correct
+        types and supported search fields in Uniprot.
         
         :param  search_terms: Search terms for the Uniprot search as a list of 
                               tuples of Strings.
-        :return: A set of EC numbers from the search
+        :return: True if the types in 'search_terms' is correct
+        :return: False if types in 'search_terms' is invalid
+        :return: An error message as a string
         """
         # Check the data types of search_terms
         if type(search_terms) is not list:
-            err = "Error in Uniprot class member function 'ec_search()'. "
-            err += "Parameter 'search_terms' must be a list"
-            raise TypeError(err)
+            err = "Parameter 'search_terms' must be a list"
+            return False, err
         # Make sure that search_terms list is not empty
         if len(search_terms) == 0:
-            err = "Error in Uniprot class member function 'ec_search()'. "
-            err += "Parameter 'search_terms' must not be empty"
-            raise Exception(err)
+            err = "Parameter 'search_terms' must not be empty"
+            return False, err
         # Check the types of the search_terms list
         for e in search_terms:
             if type(e) is not tuple:
-                err = "Error in Uniprot class member function 'ec_search()'. "
-                err += "Eelements in parameter 'search_terms' must be tuples."
-                raise TypeError(err)
+                err = "Eelements in parameter 'search_terms' must be tuples."
+                return False, err
             # Check the types of elements in tuples.
             for i in e:
                 if type(i) != type("string"):
-                    err = "Error in Uniprot class member function 'ec_search()'. "
-                    err += "Elements in tuples must me strings"
-                    raise TypeError(err)
+                    err = "Elements in tuples must me strings"
+                    return False, err
             # Check if search field is supported
             supported, err = Uniprot.field_supported(e[0])
             if not supported:
-                raise Exception(error)
+                return False, err
+        return True, "Types Valid"
                 
