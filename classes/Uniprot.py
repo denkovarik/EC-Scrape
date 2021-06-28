@@ -128,10 +128,14 @@ class Uniprot():
         # Check for field 'All'
         if field.lower() == "all":
             return True, "Field Supported"
-            # Check for field 'All'
+        # Check for field 'Protein name'
         if field.lower() == "protein name":
             return True, "Field Supported"
+        # Check for field 'Organism'
         if field.lower() == "organism":
+            return True, "Field Supported"
+        # Check for field 'Reviewed'
+        if field.lower() == "reviewed":
             return True, "Field Supported"
         return False, "Field Not Supported"
 
