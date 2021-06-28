@@ -1,3 +1,6 @@
+import requests
+
+
 class Uniprot():
     """
     Class for searching the Uniprot Database for EC Numbers for proteins.
@@ -54,46 +57,7 @@ class Uniprot():
         # Define the sort criteria
         url += '&sort=' + sort
         return url
-        
-        
-    def ec_search(self, search_terms):
-        """
-        Performs a REST API call to Uniport to make a query given search terms.
-        
-        :param self: Instance of the Uniprot class
-        :param search_terms: A list of tuples of strings that search as the 
-                             search terms and keywords for the Uniprot query.
-        :return: A set of EC Numbers.
-        """
             
-        return ec
-    
-    @staticmethod
-    def field_supported(field):
-        """
-        Determines if a Uniprot search field is supported by this software or 
-        by Uniprot itself.
-        
-        :param field: The Uniprot search field.
-        :return: True if the search field is supported
-        :return: False otherwise
-        :return: An error message as a String
-        """
-        # Check the type of field
-        if type(field) != type("string"):
-            err = "Error in field_supported. Type of 'field' parameter must "
-            err += "be a string."
-            return False, err           
-        # Check for field 'All'
-        if field.lower() == "all":
-            return True, "Field Supported"
-            # Check for field 'All'
-        if field.lower() == "protein name":
-            return True, "Field Supported"
-        if field.lower() == "organism":
-            return True, "Field Supported"
-        return False, "Field Not Supported"
-    
     
     @staticmethod
     def check_search_terms(search_terms):
@@ -130,4 +94,58 @@ class Uniprot():
             if not supported:
                 return False, err
         return True, "Types Valid"
-                
+        
+        
+    def ec_search(self, search_terms):
+        """
+        Performs a REST API call to Uniport to make a query given search terms.
+        
+        :param self: Instance of the Uniprot class
+        :param search_terms: A list of tuples of strings that search as the 
+                             search terms and keywords for the Uniprot query.
+        :return: A set of EC Numbers.
+        """
+        ec = set(())   
+        return ec
+    
+    
+    @staticmethod
+    def field_supported(field):
+        """
+        Determines if a Uniprot search field is supported by this software or 
+        by Uniprot itself.
+        
+        :param field: The Uniprot search field.
+        :return: True if the search field is supported
+        :return: False otherwise
+        :return: An error message as a String
+        """
+        # Check the type of field
+        if type(field) != type("string"):
+            err = "Error in field_supported. Type of 'field' parameter must "
+            err += "be a string."
+            return False, err           
+        # Check for field 'All'
+        if field.lower() == "all":
+            return True, "Field Supported"
+            # Check for field 'All'
+        if field.lower() == "protein name":
+            return True, "Field Supported"
+        if field.lower() == "organism":
+            return True, "Field Supported"
+        return False, "Field Not Supported"
+
+    
+    def make_request(self, url):
+        """
+        Wrapper function for making requests to Uniprot through their REST API
+        for the html page of a search query.
+        
+        :param self: Instance of the Uniprot class
+        :param url: The url of the search results on Uniprot.
+        :return: The status code of the request as an int
+        :return: The text returned from the request as a String 
+        """
+        # Make the request
+        response = requests.get(url)
+        return response.status_code, response.text
