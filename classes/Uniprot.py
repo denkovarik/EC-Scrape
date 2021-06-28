@@ -39,7 +39,8 @@ class Uniprot():
             if len(i) > 2:
                 condition = i[2].upper()
             # Add condition
-            if not start and condition == "AND":
+            if not start and condition == "AND" \
+            and Uniprot.field_supported(i[0])[0]:
                 url += '+'
             start = False
             # Search term for field 'All'
@@ -54,6 +55,10 @@ class Uniprot():
             if i[0].lower() == 'organism':
                 term = i[1].strip().replace(" ", "+")
                 url += 'organism%3A"' + term + '"'
+            # Search term for field 'Organism'
+            if i[0].lower() == 'reviewed':
+                term = "yes"
+                url += 'reviewed%3A' + term
         # Define the sort criteria
         url += '&sort=' + sort
         return url
