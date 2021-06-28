@@ -59,9 +59,9 @@ class Uniprot_tests(unittest.TestCase):
                             (organism_field, organism),    
                             ("Reviewed", "Reviewed"),                            
                         ]
-        expected = 'https://www.uniprot.org/uniprot/?query=%22gnat+family+n-acetyltransferase%22+geobacillus+reviewed%3Ayes&sort=score'
-        #url = db.build_query(search_terms)
-        #self.assertTrue(url == expected)
+        expected = 'https://www.uniprot.org/uniprot/?query="gnat+family+n-acetyltransferase"+"geobacillus"+reviewed%3Ayes&sort=score'
+        url = db.build_query(search_terms)
+        self.assertTrue(url == expected)
         # Testing field 'Protein name' for protein and field 'All' for organism
         protein_field = "Protein name"
         organism_field = "All"
