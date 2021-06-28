@@ -10,6 +10,20 @@ class Uniprot_tests(unittest.TestCase):
     """
     Runs all tests for the Uniprot class.
     """
+    def test_make_request(self):
+        """
+        Tests the Uniprot class member function 'make_request()' on its ability to
+        make a request for the .html file for the Uniprot search results.
+        
+        :param self: An instance of the Unprot_tests class.
+        """
+        db = Uniprot()
+        # Testing valid request
+        url = 'https://www.uniprot.org/uniprot/?query="gnat+family+n-acetyltransferase"+"geobacillus"&sort=score'        
+        status, content = db.make_request(url)
+        self.assertTrue(status == 200)
+        
+        
     def test_build_query(self):
         """
         Tests the Uniprot class member function 'build_query()' on its ability
