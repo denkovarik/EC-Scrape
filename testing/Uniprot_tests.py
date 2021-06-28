@@ -49,6 +49,19 @@ class Uniprot_tests(unittest.TestCase):
         expected += '+n-acetyltransferase"+"geobacillus"&sort=score'
         url = db.build_query(search_terms)
         self.assertTrue(url == expected)
+        # Testing field reviewed for reviewed and field 'All' for protein and
+        # field 'All' for organism
+        protein_field = "All"
+        organism_field = "All"
+        condition = "AND"
+        search_terms = [
+                            (protein_field, protein_name, condition),
+                            (organism_field, organism),    
+                            ("Reviewed", "Reviewed"),                            
+                        ]
+        expected = 'https://www.uniprot.org/uniprot/?query=%22gnat+family+n-acetyltransferase%22+geobacillus+reviewed%3Ayes&sort=score'
+        #url = db.build_query(search_terms)
+        #self.assertTrue(url == expected)
         # Testing field 'Protein name' for protein and field 'All' for organism
         protein_field = "Protein name"
         organism_field = "All"
@@ -194,14 +207,17 @@ class Uniprot_tests(unittest.TestCase):
         search_terms = [
                         ("All", "gnat family n-acetyltransferase"),
                         ("Protein name", "gnat family n-acetyltransferase"),
-                        ("Organism", "geobacillus"),                           
+                        ("Organism", "geobacillus"),
+                        ("Reviewed", "Reviewed"),
                         ]
         # Testing field 'All'
-        self.assertTrue(Uniprot.field_supported(search_terms[0][0]))
+        self.assertTrue(Uniprot.field_supported(search_terms[0][0])[0])
         # Testing field 'Protein name'
-        self.assertTrue(Uniprot.field_supported(search_terms[1][0]))
+        self.assertTrue(Uniprot.field_supported(search_terms[1][0])[0])
         # Testing field 'Organism'
-        self.assertTrue(Uniprot.field_supported(search_terms[2][0]))
+        self.assertTrue(Uniprot.field_supported(search_terms[2][0])[0])
+        # Testing field 'Reviewed'
+        self.assertTrue(Uniprot.field_supported(search_terms[3][0])[0])
         
         # Testing unsupported fields
         search_terms = [
