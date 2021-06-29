@@ -10,6 +10,142 @@ class Uniprot_tests(unittest.TestCase):
     """
     Runs all tests for the Uniprot class.
     """
+    def test_extract_features(self):
+        """
+        Tests the Uniprot inner class Results_Itr member function 
+        'extract_features()' on its ability to extract the features from a
+        row from the results table returned from a query on Uniprot.
+        
+        :param self: An instance of the Unprot_tests class.
+        :param row: A row from the results table in the html file as a String
+        """
+        db = Uniprot()
+        path = currentdir + '\\test_files\\iterator_test.htm'
+        with open(path) as f:
+            content = f.read()
+        itr = Uniprot.Results_Itr(content)
+        # Testing first row
+        # Function 'extract_features()' called in Results_Itr class function 
+        # 'begin()'
+        itr.begin()
+        self.assertTrue(itr.features['id'] == 'A0A2M9T2M7')
+        proteins = 'GNAT family N-acetyltransferase, EC 2.3.1.1'
+        self.assertTrue(itr.features['protein names'] == proteins)
+        # Iterate to the next result.
+        # Function 'extract_features()' called in Results_Itr class function 
+        # '__next__()'
+        itr.__next__()
+        self.assertTrue(itr.features['id'] == 'A0A2Z3N999')
+        proteins = 'GNAT family N-acetyltransferase'
+        self.assertTrue(itr.features['protein names'] == proteins)
+        
+        
+    def test_get_protein_names(self):
+        """
+        Tests the Uniprot inner class Results_Itr member function 
+        'get_protein_names()' on its ability to identify and return the protein
+        names found in a row from the results table returned from a query on 
+        Uniprot.
+        
+        :param self: An instance of the Unprot_tests class.
+        :param row: A row from the results table in the html file as a String
+        """
+        db = Uniprot()
+        path = currentdir + '\\test_files\\iterator_test.htm'
+        with open(path) as f:
+            content = f.read()
+        itr = Uniprot.Results_Itr(content)
+        # Test calling Results_Itr class member function begin()
+        itr.begin()
+        protein_names = itr.get_protein_names(itr.cur_row)
+        expected = 'GNAT family N-acetyltransferase, EC 2.3.1.1'
+        self.assertTrue(protein_names == expected)
+        
+        
+    def test_get_entry_id(self):
+        """
+        Tests the Uniprot inner class Results_Itr member function 
+        'get_entry_id()' on its ability to identify and return the entry id
+        found in a row from the results table returned from a query on Uniprot.
+        
+        :param self: An instance of the Unprot_tests class.
+        :param row: A row from the results table in the html file as a String
+        """
+        db = Uniprot()
+        path = currentdir + '\\test_files\\iterator_test.htm'
+        with open(path) as f:
+            content = f.read()
+        itr = Uniprot.Results_Itr(content)
+        # Test calling Results_Itr class member function begin()
+        itr.begin()
+        self.assertTrue(itr.get_entry_id(itr.cur_row) == 'A0A2M9T2M7')
+        
+    
+    def test_Result_Itr_next(self):
+        """
+        Tests the Uniprot inner class Results_Itr member function __next__()        
+        on its ability to identify the beginning of the results returned from
+        a query on Uniprot.
+        
+        :param self: An instance of the Unprot_tests class.
+        """
+        db = Uniprot()
+        path = currentdir + '\\test_files\\iterator_test.htm'
+        with open(path) as f:
+            content = f.read()
+        itr = Uniprot.Results_Itr(content)
+        # Test calling Results_Itr class member function begin()
+        itr.begin()
+        itr.__next__()
+        self.assertTrue(itr.start_pos == 71164)
+        self.assertTrue(itr.end_pos == 72009)
+        cur_expected = '<tr id="A0A2Z3N999" class=" entry"><td class="checkboxColumn"><input class="basket-item namespace-uniprot" id="checkbox_A0A2Z3N999" type="checkbox"/></td><td class="entryID"><a href="/uniprot/A0A2Z3N999">A0A2Z3N999</a></td><td>A0A2Z3N999_GEOTH</td><td class="centered"><div title="Unreviewed (TrEMBL)" class="tooltipped icon-uniprot unreviewed-icon" data-icon="t"></div></td><td><div class="protein_names"><div class="short" title="GNAT family N-acetyltransferase" style="display:none;">GNAT family N-acetyltransferase</div><div class="long">GNAT family N-acetyltransferase </div></div></td><td><div class="gene-names"><span class="shortName"> C1N76_11570, IC805_15690 </span></div></td><td><a href="/taxonomy/33941">Geobacillus thermoleovorans (Bacillus thermoleovorans)</a></td><td class="number">210</td><td class="addRemoveColumn mid"/></tr>'
+        self.assertTrue(itr.cur_row == cur_expected)
+        num_results = 1
+        while not itr.end:
+            num_results += 1
+            itr.__next__()
+        self.assertTrue(num_results == 25)
+        
+        
+    def test_Results_Itr_int(self):    
+        """
+        Tests the initalization of the Uniprot inner class Results_Itr.
+        
+        :param self: An instance of the Unprot_tests class.
+        """
+        path = currentdir + '\\test_files\\iterator_test.htm'
+        with open(path) as f:
+            content = f.read()
+        itr = Uniprot.Results_Itr(content)
+        # Testing default initialization
+        self.assertTrue(itr.row == content)
+        self.assertTrue(itr.end == False)
+        f.close()
+        
+    
+    def test_Results_Itr_begin(self):
+        """
+        Tests the Uniprot inner class Results_Itr member function begin on its
+        ability to identify the beginning of the results returned from a 
+        query on Uniprot.
+        
+        :param self: An instance of the Unprot_tests class.
+        """
+        db = Uniprot()
+        path = currentdir + '\\test_files\\iterator_test.htm'
+        with open(path) as f:
+            content = f.read()
+        itr = Uniprot.Results_Itr(content)
+        # Test calling Results_Itr class member function begin()
+        itr.begin()
+        self.assertTrue(itr.start_pos == 70333)
+        self.assertTrue(itr.end_pos == 71164)
+        cur_expected = '<tr id="A0A2M9T2M7" class=" entry selected-row"><td class="checkboxColumn"><input class="basket-item namespace-uniprot" id="checkbox_A0A2M9T2M7" type="checkbox"/></td><td class="entryID"><a href="/uniprot/A0A2M9T2M7">A0A2M9T2M7</a></td><td>A0A2M9T2M7_9BACI</td><td class="centered"><div title="Unreviewed (TrEMBL)" class="tooltipped icon-uniprot unreviewed-icon" data-icon="t"></div></td><td><div class="protein_names"><div class="short" title="GNAT family N-acetyltransferase" style="display:none;">GNAT family N-acetyltransferase</div><div class="long">GNAT family N-acetyltransferase, EC 2.3.1.1 </div></div></td><td><div class="gene-names"><span class="shortName"> CV944_10475 </span></div></td><td><a href="/taxonomy/2055939">Geobacillus sp. WSUCF-018B</a></td><td class="number">150</td><td class="addRemoveColumn mid"/></tr>'
+        self.assertTrue(itr.cur_row == cur_expected)
+        f.close()   
+        
+        
     def test_results_found(self):
         """
         Tests the Uniprot class member function 'results_found()' on its ability to
@@ -24,10 +160,12 @@ class Uniprot_tests(unittest.TestCase):
         with open(no_results_file) as f:
             content = f.read()
         self.assertFalse(db.results_found(content))
+        f.close()
         # Testing on results found
         with open(results_file) as f:
             content = f.read()
         self.assertTrue(db.results_found(content))
+        f.close()
         
         
     def test_make_request(self):
