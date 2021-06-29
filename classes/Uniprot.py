@@ -11,6 +11,140 @@ class Uniprot():
         """
         self.content = ""
         self.root = "https://www.uniprot.org"
+        self.srch_rslt_itr = None
+        self.query = None
+        
+    class Results_Itr():
+        """
+        Iterator to iterate through the results returned from a query on 
+        Uniprot.
+        """
+        def __init__(self, content):
+            """
+            Initializes an instance of the Results_Itr class.
+            
+            :param self: An instance of the Results_Itr class
+            :param content: The content from the html file of the Results from 
+                            a query on Uniprot
+            """
+            # The content of the results .html file returned
+            self.row = content
+            # The current results as a dictionary
+            self.cur = None
+            # The current start and end positions within the html file
+            self.start_pos = 0
+            self.end_pos = 0
+            self.cur_row = ''
+            # Boolean to indicate if at end of results
+            self.end = False
+            # The features from the results row
+            self.features = {}
+            # Set the iterator to the first results
+            self.begin()
+            
+            
+        def begin(self):
+            """
+            Sets the instance of the Results_Itr class to the beginning of the
+            results returned from Uniprot.
+            
+            :param self: An instance of the Results_Itr class
+            """
+            s = 0
+            # Find the starting point of the results table
+            s = self.row.find('<table class="grid" id="results">', s)
+            if s == -1:
+                self.end = True
+                return
+            s = self.row.find('<tr', s)
+            if s == -1:
+                self.end = True
+                return
+            e = self.row.find('</tr>', s)
+            if e == -1:
+                self.end = True
+                return
+            s = self.row.find('<tr', e)
+            if s == -1:
+                self.end = True
+                return
+            e = self.row.find('</tr>', s)
+            if e == -1:
+                self.end = True
+                return
+            self.start_pos = self.row.find('<tr id=', e)
+            if self.start_pos == -1:
+                self.end = True
+                return
+            self.end_pos = self.row.find('</tr>', self.start_pos) + 5
+            if self.end_pos == -1:
+                self.end = True
+                return
+            self.cur_row = self.row[self.start_pos:self.end_pos]
+            # Extract the features
+            self.extract_features(self.cur_row)
+            
+            
+        def extract_features(self, row):
+            """
+            Extracts the features from the 'row' parameter, which is a row from
+            the results table from a Uniprot query. The features that are 
+            currently being extracted are the id and the protein names.
+            
+            :param self: An instance of the Unprot class.
+            :param row: A row from the results table in the html file as a String
+            """
+            self.features['id'] = self.get_entry_id(row)
+            self.features['protein names'] = self.get_protein_names(row)
+            
+            
+        def get_entry_id(self, row):
+            """
+            Returns the entry id found in the parameter 'row'.
+            
+            :param self: An instance of the Unprot class.
+            :param row: A row from the results table in the html file as a String
+            """
+            s = row.find('<tr id=')
+            s = row.find('"', s) + 1
+            e = row.find('"', s)
+            entry_id = row[s:e]
+            return entry_id.strip()
+        
+        
+        def get_protein_names(self, the_row, name=None):
+            """
+            Returns the protein names found in the parameter 'row'.
+            
+            :param self: An instance of the Unprot class.
+            :param row: A row from the results table in the html file as a String
+            :param name: The protein name to match the results to
+            """
+            s = the_row.find('<div class="long"')
+            s = the_row.find('>', s) + 1
+            e = the_row.find('</div>', s)
+            protein_names = the_row[s:e].strip()
+            return protein_names
+        
+        
+        def __next__(self):
+            """
+            Sets the instance of the Results_Itr class to the next result of
+            all the results returned from Uniprot.
+            
+            :param self: An instance of the Results_Itr class
+            """
+            self.start_pos = self.row.find('<tr id=', self.end_pos)
+            if self.start_pos == -1:
+                self.end = True
+                return
+            self.end_pos = self.row.find('</tr>', self.start_pos) + 5
+            if self.end_pos == -1:
+                self.end = True
+                return
+            self.cur_row = self.row[self.start_pos:self.end_pos]
+            # Extract the features
+            self.extract_features(self.cur_row)
         
         
     def build_query(self, search_terms, sort='score'):
@@ -101,17 +235,17 @@ class Uniprot():
         return True, "Types Valid"
         
         
-    def ec_search(self, search_terms):
+    def search(self, search_terms):
         """
         Performs a REST API call to Uniport to make a query given search terms.
         
         :param self: Instance of the Uniprot class
         :param search_terms: A list of tuples of strings that search as the 
                              search terms and keywords for the Uniprot query.
-        :return: A set of EC Numbers.
         """
-        ec = set(())   
-        return ec
+        self.query = self.build_query(search_terms)   
+        status_code, self.content = self.make_request(self.query)
+        self.srch_rslt_itr = Uniprot.Results_Itr(self.content)
     
     
     @staticmethod
