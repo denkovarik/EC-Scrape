@@ -158,3 +158,13 @@ class Uniprot():
         # Make the request
         response = requests.get(url)
         return response.status_code, response.text
+        
+        
+    def results_found(self, content):
+        """
+        Determines if results were found from a query on Uniprot.
+        
+        :param self: Instance of the Uniprot class
+        :param content: The content of the html file from the request
+        """
+        return (content.find('<div id="noResultsMessage">') == -1)
