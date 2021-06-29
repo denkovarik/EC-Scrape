@@ -10,6 +10,26 @@ class Uniprot_tests(unittest.TestCase):
     """
     Runs all tests for the Uniprot class.
     """
+    def test_results_found(self):
+        """
+        Tests the Uniprot class member function 'results_found()' on its ability to
+        determine if results were returned from a query on Uniprot.
+        
+        :param self: An instance of the Unprot_tests class.
+        """
+        db = Uniprot()
+        no_results_file = currentdir + "\\test_files\\no_results_found.htm"
+        results_file = currentdir + "\\test_files\\results_found.htm"
+        # Testing no results found
+        with open(no_results_file) as f:
+            content = f.read()
+        self.assertFalse(db.results_found(content))
+        # Testing on results found
+        with open(results_file) as f:
+            content = f.read()
+        self.assertTrue(db.results_found(content))
+        
+        
     def test_make_request(self):
         """
         Tests the Uniprot class member function 'make_request()' on its ability to
@@ -19,7 +39,8 @@ class Uniprot_tests(unittest.TestCase):
         """
         db = Uniprot()
         # Testing valid request
-        url = 'https://www.uniprot.org/uniprot/?query="gnat+family+n-acetyltransferase"+"geobacillus"&sort=score'        
+        url = 'https://www.uniprot.org/uniprot/?query='
+        url += '"gnat+family+n-acetyltransferase"+"geobacillus"&sort=score'        
         status, content = db.make_request(url)
         self.assertTrue(status == 200)
         
@@ -59,7 +80,9 @@ class Uniprot_tests(unittest.TestCase):
                             (organism_field, organism),    
                             ("Reviewed", "Reviewed"),                            
                         ]
-        expected = 'https://www.uniprot.org/uniprot/?query="gnat+family+n-acetyltransferase"+"geobacillus"+reviewed%3Ayes&sort=score'
+        expected = 'https://www.uniprot.org/uniprot/?query='
+        expected += '"gnat+family+n-acetyltransferase"+"geobacillus"'
+        expected += '+reviewed%3Ayes&sort=score'
         url = db.build_query(search_terms)
         self.assertTrue(url == expected)
         # Testing field 'Protein name' for protein and field 'All' for organism
