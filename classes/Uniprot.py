@@ -155,10 +155,17 @@ class Results_Itr():
         :param row: A row from the results table in the html file as a String
         :param name: The protein name to match the results to
         """
+        # Find div tag for protein
         s = the_row.find('<div class="long"')
         s = the_row.find('>', s) + 1
         e = the_row.find('</div>', s)
         protein_names = the_row[s:e].strip()
+        # Remove html tags
+        s = protein_names.find('<')
+        while s != -1:
+            e = protein_names.find('>')
+            protein_names = protein_names[:s] + protein_names[e+1:]
+            s = protein_names.find('<')    
         return protein_names
 
 
