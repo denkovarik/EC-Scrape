@@ -10,6 +10,26 @@ class Uniprot_tests(unittest.TestCase):
     """
     Runs all tests for the Uniprot class.
     """
+    def test_bug_fix2(self):
+        """
+        Tests the bug fix where html tags are being included it the text
+        that is being scraped from Uniprot.
+        
+        :param self: An instance of the Uniprot_tests class
+        """
+        path = currentdir + "\\test_files\\carbonic_anhydrase_.htm"
+        self.assertTrue(os.path.isfile(path))
+        with open(path) as f:
+            content = f.read()
+        db = Uniprot()
+        db.content = content
+        db.results_itr = Results_Itr(content)
+        itr = iter(db)
+        features = next(itr)    
+        proteins = "Carbonic anhydrase 6, EC 4.2.1.1 (Carbonate dehydratase VI)  (Carbonic anhydrase VI, CA-VI)  (Salivary carbonic anhydrase)  (Secreted carbonic anhydrase)"
+        self.assertTrue(features['protein names'] == proteins)
+        
+        
     def test_bug_fix1(self):
         """
         Tests the bug fix where iterator doesn't start all the way at the
@@ -19,6 +39,7 @@ class Uniprot_tests(unittest.TestCase):
         """
         db = Uniprot()
         path = currentdir + '\\test_files\\iterator_test.htm'
+        self.assertTrue(os.path.isfile(path))
         with open(path) as f:
             content = f.read()
         db.content = content
