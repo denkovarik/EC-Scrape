@@ -1,0 +1,110 @@
+Seq-entry ::= seq {
+  id {
+    other {
+      accession "WP_008881006",
+      version 1
+    },
+    gi 496156499
+  },
+  descr {
+    source {
+      org {
+        taxname "Geobacillus",
+        db {
+          {
+            db "taxon",
+            tag id 129337
+          }
+        },
+        orgname {
+          name partial {
+            {
+              fixed-level other,
+              level "genus",
+              name "Geobacillus"
+            }
+          },
+          lineage "Bacteria; Firmicutes; Bacilli; Bacillales; Bacillaceae",
+          gcode 11,
+          div "BCT"
+        }
+      }
+    },
+    molinfo {
+      biomol peptide,
+      completeness complete
+    },
+    user {
+      type str "StructuredComment",
+      data {
+        {
+          label str "StructuredCommentPrefix",
+          data str "##Evidence-For-Name-Assignment-START##"
+        },
+        {
+          label str "Evidence Category",
+          data str "Conserved Domain (CDD)"
+        },
+        {
+          label str "Evidence Accession",
+          data str "Domain architecture ID 10607277"
+        },
+        {
+          label str "Evidence Source",
+          data str "NCBI SPARCLE"
+        },
+        {
+          label str "StructuredCommentSuffix",
+          data str "##Evidence-For-Name-Assignment-END##"
+        }
+      }
+    },
+    user {
+      type str "EvidenceForNameAssignmentSupplementary",
+      data {
+        {
+          label str "Precedence",
+          data int 60
+        }
+      }
+    },
+    create-date std {
+      year 2013,
+      month 5,
+      day 10
+    },
+    update-date std {
+      year 2019,
+      month 4,
+      day 12
+    }
+  },
+  inst {
+    repr raw,
+    mol aa,
+    length 139,
+    seq-data ncbieaa "MDIKIHSDFSHANLNEMREVYSSVGWTKHTTKIIKQVFEASNVIALATINGRIIGF
+GRAISDGVFNAAIYDVVVHRDFQKQGIAKKIMEFLLDQLSHVSCVHLISTTGNEEFYRKLGLKRVKTGMARYLNPELS
+DEYLE"
+  },
+  annot {
+    {
+      data ftable {
+        {
+          data prot {
+            name {
+              "GNAT family N-acetyltransferase"
+            }
+          },
+          location int {
+            from 0,
+            to 138,
+            id gi 496156499
+          }
+        }
+      }
+    }
+  }
+}
+
+

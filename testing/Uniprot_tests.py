@@ -28,6 +28,7 @@ class Uniprot_tests(unittest.TestCase):
         features = next(itr)    
         proteins = "Carbonic anhydrase 6, EC 4.2.1.1 (Carbonate dehydratase VI)  (Carbonic anhydrase VI, CA-VI)  (Salivary carbonic anhydrase)  (Secreted carbonic anhydrase)"
         self.assertTrue(features['protein names'] == proteins)
+        f.close()
         
         
     def test_bug_fix1(self):
@@ -42,6 +43,7 @@ class Uniprot_tests(unittest.TestCase):
         self.assertTrue(os.path.isfile(path))
         with open(path) as f:
             content = f.read()
+        f.close()
         db.content = content
         db.results_itr = Results_Itr(content)
         itr = iter(db)
@@ -73,6 +75,7 @@ class Uniprot_tests(unittest.TestCase):
         path = currentdir + '\\test_files\\iterator_test.htm'
         with open(path) as f:
             content = f.read()
+        f.close()
         itr = Results_Itr(content)
         # Testing first row
         # Function 'extract_features()' called in Results_Itr class function 
@@ -117,6 +120,7 @@ class Uniprot_tests(unittest.TestCase):
         path = currentdir + '\\test_files\\iterator_test.htm'
         with open(path) as f:
             content = f.read()
+        f.close()
         itr = Results_Itr(content)
         # Test calling Results_Itr class member function begin()
         itr.begin()
@@ -148,6 +152,7 @@ class Uniprot_tests(unittest.TestCase):
         path = currentdir + '\\test_files\\iterator_test.htm'
         with open(path) as f:
             content = f.read()
+        f.close()
         itr = Results_Itr(content)
         # Test calling Results_Itr class member function begin()
         itr.begin()
@@ -175,6 +180,7 @@ class Uniprot_tests(unittest.TestCase):
         path = currentdir + '\\test_files\\iterator_test.htm'
         with open(path) as f:
             content = f.read()
+        f.close()
         itr = Results_Itr(content)
         # Test calling Results_Itr class member function begin()
         itr.begin()
@@ -197,7 +203,7 @@ class Uniprot_tests(unittest.TestCase):
         itr = iter(db.results_itr)
         for row in db.results_itr:
             num_results += 1
-        #self.assertTrue(num_results == 25)
+        self.assertTrue(num_results == 25)
         
         
     def test_Results_Itr_int(self):    
