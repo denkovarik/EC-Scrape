@@ -88,6 +88,15 @@ class NCBI_tests(unittest.TestCase):
         ncbi = NCBI()
         accession = "CAI38050"
         self.assertTrue(ncbi.protein.has_ec(content, accession))
+        # naphthoate synthase hit
+        path = currentdir + "\\test_files\\biopython_entrez_naphthoate_synthase_[Corynebacterium_jeikeium_K411]2.txt"
+        self.assertTrue(os.path.isfile(path))
+        with open(path) as f:
+            content = f.read()
+        f.close()
+        ncbi = NCBI()
+        accession = "CAI38050"
+        self.assertFalse(ncbi.protein.has_ec(content, accession))
         # GNAT family N-acetyltransferase hit
         path = currentdir + "\\test_files\\biopython_entrez_GNAT_family_N_acetyltransferase_[Geobacillus].txt"
         with open(path) as f:
