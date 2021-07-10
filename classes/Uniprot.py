@@ -131,6 +131,7 @@ class Results_Itr():
         """
         self.features['id'] = self.get_entry_id(row)
         self.features['protein names'] = self.get_protein_names(row)
+        self.features['organism'] = self.get_organism(row)
             
             
     def get_entry_id(self, row):
@@ -145,6 +146,27 @@ class Results_Itr():
         e = row.find('"', s)
         entry_id = row[s:e]
         return entry_id.strip()
+        
+        
+    def get_organism(self, the_row):
+        """
+        Returns the organims found in the parameter 'row'.
+            
+        :param self: An instance of the Unprot class.
+        :param the_row: A row from the results table in the html file as a String
+        """
+        # Find div tag for protein
+        s = the_row.find('<a href="/taxonomy/')
+        s = the_row.find('>', s) + 1
+        e = the_row.find('</a>', s)
+        protein_names = the_row[s:e].strip()
+        # Remove html tags
+        s = protein_names.find('<')
+        while s != -1:
+            e = protein_names.find('>')
+            protein_names = protein_names[:s] + protein_names[e+1:]
+            s = protein_names.find('<')    
+        return protein_names
         
         
     def get_protein_names(self, the_row, name=None):
@@ -166,6 +188,28 @@ class Results_Itr():
             e = protein_names.find('>')
             protein_names = protein_names[:s] + protein_names[e+1:]
             s = protein_names.find('<')    
+        return protein_names
+        
+        
+    def get_protein_name_short(self, the_row, name=None):
+        """
+        Returns the protein names found in the parameter 'row'.
+            
+        :param self: An instance of the Unprot class.
+        :param row: A row from the results table in the html file as a String
+        :param name: The protein name to match the results to
+        """
+        # Find div tag for protein
+        s = the_row.find('<div class="short"')
+        s = the_row.find('>', s) + 1
+        e = the_row.find('</div>', s)
+        protein_names = the_row[s:e].strip()
+        # Remove html tags
+        s = protein_names.find('<')
+        while s != -1:
+            e = protein_names.find('>')
+            protein_names = protein_names[:s] + protein_names[e+1:]
+            s = protein_names.find('<') 
         return protein_names
 
 
