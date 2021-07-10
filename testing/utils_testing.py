@@ -11,6 +11,83 @@ class Utils_tests(unittest.TestCase):
     """
     Runs all tests for the utility functions in utils.py.
     """   
+    def test_parse_keywords(self):
+        """
+        Tests function parse_keywords() on its ability to parse the keywords 
+        and create the necessary data structure for it.'
+        
+        :param self: An element of the Utils_tests class.
+        """
+        # Test Case 1
+        keywords = 'hypothetical protein'
+        exp = [{"Not": False, "Keyword" : "hypothetical"}, 
+               {"Not": False, "Keyword" : "protein"}]
+        rslt = parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 2
+        keywords = "'hypothetical protein'"
+        exp = [{"Not": False, "Keyword" : "hypothetical protein"}]
+        rslt = parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 3
+        keywords = '"hypothetical protein"'
+        exp = [{"Not": False, "Keyword" : "hypothetical protein"}]
+        rslt = parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 4
+        keywords = 'DNA Polymerase "hypothetical protein" Glutimate'
+        exp = [{"Not": False, "Keyword" : "DNA"}, 
+               {"Not": False, "Keyword" : "Polymerase"},
+               {"Not": False, "Keyword" : "hypothetical protein"},
+               {"Not": False, "Keyword" : "Glutimate"}]
+        rslt = parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 5
+        keywords = 'NOT hypothetical protein'
+        exp = [{"Not": True, "Keyword" : "hypothetical"}, 
+               {"Not": False, "Keyword" : "protein"}]
+        rslt = parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 6
+        keywords = 'hypothetical NOT protein'
+        exp = [{"Not": False, "Keyword" : "hypothetical"}, 
+               {"Not": True, "Keyword" : "protein"}]
+        rslt = parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 7
+        keywords = 'NOT "hypothetical protein"'
+        exp = [{"Not": True, "Keyword" : "hypothetical protein"}]
+        rslt = parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 8
+        keywords = 'NOT DNA Polymerase NOT "hypothetical protein" Glutimate'
+        exp = [{"Not": True, "Keyword" : "DNA"}, 
+               {"Not": False, "Keyword" : "Polymerase"},
+               {"Not": True, "Keyword" : "hypothetical protein"},
+               {"Not": False, "Keyword" : "Glutimate"}]
+        rslt = parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        
+        
+    def test_prcs_blast_rslts(self):
+        """
+        Tests function prcs_blast_rslts() on its ability to process the 
+        blast results and scrape online databases for the ec numbers.'
+        
+        :param self: An element of the Utils_tests class.
+        """
+        email = 'dennis.kovarik@mines.sdsmt.edu'
+        path = currentdir + "\\test_files\\blast_Glutaminase.xml"
+        self.assertTrue(os.path.isfile(path))
+        f = open(path, 'r')
+        blast_xml = f.read()
+        f.close()
+        seq_len = 348
+        exp = '(EC-Scraped (glutaminase A [Geobacillus thermodenitrificans] (NCBI Protein Accession: WP_029761658) (EC-Scraped EC 3.5.1.2))) (EC-Scraped (glutaminase A [Geobacillus] (NCBI Protein Accession: WP_011887640) (EC-Scraped EC 3.5.1.2))) '
+        rslt = prcs_blast_rslts(blast_xml, seq_len, email, 97.0, 86.0)
+        self.assertTrue(rslt == exp)
+        
+        
     def test_tag_ec(self):
         """
         Tests function tag_ec() on its ability to replace 'EC ' with 
@@ -153,7 +230,7 @@ class Utils_tests(unittest.TestCase):
         self.assertTrue(rslt == exp)
         
         
-    def test_process_rslt(self):
+    def test_ec_scrape(self):
         """
         Tests running the utility function 'ec_scrape()'.
         
@@ -163,13 +240,13 @@ class Utils_tests(unittest.TestCase):
         email = 'dennis.kovarik@mines.sdsmt.edu'
         acc = 'WP_029761658'
         num_hits = 10
-        rslt = ec_scrape(acc, num_hits, email)
+        rslt = ec_scrape(acc, email, num_hits)
         exp = '(EC-Scraped (glutaminase A [Geobacillus thermodenitrificans] (NCBI Protein Accession: WP_029761658) (EC-Scraped EC 3.5.1.2)))'
         self.assertTrue(rslt == exp)
         # Test Case 2
         acc = 'WP_008881006'
         num_hits = 10
-        rslt = ec_scrape(acc, num_hits, email)
+        rslt = ec_scrape(acc, email, num_hits)
         exp = '(EC-Scraped (GNAT family N-acetyltransferase, (EC-Scraped EC 2.3.1.1) [Geobacillus sp. WSUCF-018B] UniProtKB: A0A2M9T2M7)) '
         self.assertTrue(rslt == exp)       
         
@@ -177,7 +254,8 @@ class Utils_tests(unittest.TestCase):
     def test_parse_blast_xml(self):
         """
         Tests the utils function parse_blast_xml on its ability to parse the
-        output returned from a blast search return the required data structure.
+        output returned from a blast search return the required data 
+        structure.
         
         :param self: An element of the Utils_tests class.
         """
@@ -207,7 +285,7 @@ class Utils_tests(unittest.TestCase):
         self.assertTrue(blast_data[40]['Hit_num'] == 41)
         self.assertTrue(abs(blast_data[40]['Per Ident'] - 85.15) < 0.01)
         self.assertTrue(abs(blast_data[40]['Query Cover'] - 87) < 1)
-    
+        
         
     def test_execution(self):
         """
