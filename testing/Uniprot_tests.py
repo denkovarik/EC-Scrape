@@ -10,6 +10,36 @@ class Uniprot_tests(unittest.TestCase):
     """
     Runs all tests for the Uniprot class.
     """
+    def test_get_organism(self):
+        """
+        Tests the Uniprot class member function 'get_organism()' on its 
+        ability to extract the source organism from a row.
+        
+        :param self: An instance of the Uniprot_tests class
+        """
+        db = Uniprot()
+        path = currentdir + '\\test_files\\iterator_test.htm'
+        with open(path) as f:
+            content = f.read()
+        f.close()
+        itr = Results_Itr(content)
+        # Test calling Results_Itr class member function begin()
+        itr.begin()
+        itr.__next__()
+        protein_names = itr.get_organism(itr.cur_row)
+        expected = 'Geobacillus sp. WSUCF-018B'
+        self.assertTrue(protein_names == expected)
+        # Testing with Python's iter built-in function
+        db = Uniprot()
+        db.content = content
+        db.result_itr = Results_Itr(content)
+        itr = iter(db.result_itr)
+        itr.begin()
+        itr.__next__()
+        protein_names = itr.get_organism(itr.cur_row)
+        self.assertTrue(protein_names == expected)
+        
+        
     def test_bug_fix2(self):
         """
         Tests the bug fix where html tags are being included it the text
@@ -84,6 +114,8 @@ class Uniprot_tests(unittest.TestCase):
         self.assertTrue(itr.features['id'] == 'A0A2M9T2M7')
         proteins = 'GNAT family N-acetyltransferase, EC 2.3.1.1'
         self.assertTrue(itr.features['protein names'] == proteins)
+        org = 'Geobacillus sp. WSUCF-018B'
+        self.assertTrue(itr.features['organism'] == org)
         # Iterate to the next result.
         # Function 'extract_features()' called in Results_Itr class function 
         # '__next__()'
@@ -91,6 +123,8 @@ class Uniprot_tests(unittest.TestCase):
         self.assertTrue(itr.features['id'] == 'A0A2Z3N999')
         proteins = 'GNAT family N-acetyltransferase'
         self.assertTrue(itr.features['protein names'] == proteins)
+        org = 'Geobacillus thermoleovorans (Bacillus thermoleovorans)'
+        self.assertTrue(itr.features['organism'] == org)
         # Testing with Python's iter built-in function
         db = Uniprot()
         db.content = content
@@ -100,10 +134,47 @@ class Uniprot_tests(unittest.TestCase):
         self.assertTrue(itr.features['id'] == 'A0A2M9T2M7')
         proteins = 'GNAT family N-acetyltransferase, EC 2.3.1.1'
         self.assertTrue(itr.features['protein names'] == proteins)
+        org = 'Geobacillus sp. WSUCF-018B'
+        self.assertTrue(itr.features['organism'] == org)
         next(itr)
         self.assertTrue(itr.features['id'] == 'A0A2Z3N999')
         proteins = 'GNAT family N-acetyltransferase'
         self.assertTrue(itr.features['protein names'] == proteins)
+        org = 'Geobacillus thermoleovorans (Bacillus thermoleovorans)'
+        self.assertTrue(itr.features['organism'] == org)
+        
+        
+    def test_get_protein_name_short(self):
+        """
+        Tests the Uniprot class Results_Itr member function 
+        'get_protein_name_short()' on its ability to identify and return the 
+        short version of the proteinname found in a row from the results 
+        table returned from a query on Uniprot.
+        
+        :param self: An instance of the Unprot_tests class.
+        :param row: A row from the results table in the html file as a String
+        """
+        db = Uniprot()
+        path = currentdir + '\\test_files\\iterator_test.htm'
+        with open(path) as f:
+            content = f.read()
+        f.close()
+        itr = Results_Itr(content)
+        # Test calling Results_Itr class member function begin()
+        itr.begin()
+        itr.__next__()
+        protein_names = itr.get_protein_name_short(itr.cur_row)
+        expected = 'GNAT family N-acetyltransferase'
+        self.assertTrue(protein_names == expected)
+        # Testing with Python's iter built-in function
+        db = Uniprot()
+        db.content = content
+        db.result_itr = Results_Itr(content)
+        itr = iter(db.result_itr)
+        itr.begin()
+        itr.__next__()
+        protein_names = itr.get_protein_name_short(itr.cur_row)
+        self.assertTrue(protein_names == expected)
         
         
     def test_get_protein_names(self):
