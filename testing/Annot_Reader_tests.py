@@ -11,7 +11,7 @@ from classes.Annot_Reader import *
 
 class Annot_Reader_tests(unittest.TestCase):
     """
-    Runs all tests for the Uniprot class.
+    Runs all tests for the Annot_Reader class.
     """
     def test_load_job(self):
         """
