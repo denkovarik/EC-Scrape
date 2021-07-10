@@ -34,6 +34,7 @@ class Results_Itr():
         The overload iter python built-in to make the class iterable.
         
         :param self: An instance of the Results_Itr class.
+        :return: An iterator for the Uniport results
         """
         return self
         
@@ -44,6 +45,7 @@ class Results_Itr():
         all the results returned from Uniprot.
             
         :param self: An instance of the Results_Itr class
+        :return: The features for a row on Uniprot
         """
         if not self.began:
             self.began = True
@@ -140,6 +142,7 @@ class Results_Itr():
             
         :param self: An instance of the Unprot class.
         :param row: A row from the results table in the html file as a String
+        :return: The entry id
         """
         s = row.find('<tr id=')
         s = row.find('"', s) + 1
@@ -153,7 +156,9 @@ class Results_Itr():
         Returns the organims found in the parameter 'row'.
             
         :param self: An instance of the Unprot class.
-        :param the_row: A row from the results table in the html file as a String
+        :param the_row: A row from the results table in the html file as a 
+                        String
+        :return: The organism as a string
         """
         # Find div tag for protein
         s = the_row.find('<a href="/taxonomy/')
@@ -176,6 +181,7 @@ class Results_Itr():
         :param self: An instance of the Unprot class.
         :param row: A row from the results table in the html file as a String
         :param name: The protein name to match the results to
+        :return: The long version of the protein names in a row on Uniprot
         """
         # Find div tag for protein
         s = the_row.find('<div class="long"')
@@ -198,6 +204,7 @@ class Results_Itr():
         :param self: An instance of the Unprot class.
         :param row: A row from the results table in the html file as a String
         :param name: The protein name to match the results to
+        :return: The short version of the protein names in a row on Uniprot
         """
         # Find div tag for protein
         s = the_row.find('<div class="short"')
@@ -232,6 +239,7 @@ class Uniprot():
         The overload iter python built-in to make the class iterable.
         
         :param self: An instance of the Uniprot class.
+        :return: An iterator to iterator over the uniprot results
         """
         return Results_Itr(self.content)
         
