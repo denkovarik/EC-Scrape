@@ -3,9 +3,6 @@ import xlwings as xw
 import pandas as pd
 import os, io, sys, inspect
 import time
-currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
-parentdir = os.path.dirname(currentdir)
-sys.path.insert(0, parentdir)
 
 
 class Annot_Reader():
@@ -57,7 +54,7 @@ class Annot_Reader():
             
             :param self: An instance of the Annot_Reader class.
             """
-            dirpath = currentdir + '\\saved_jobs\\'
+            dirpath = 'saved_jobs\\'
             filename = 'autosave_job.txt'
             if not os.path.isdir(dirpath):
                 os.mkdir(dirpath)
@@ -72,6 +69,7 @@ class Annot_Reader():
             Converts the instance of the __Annote_Reader class to a string
             
             :param self: The on instance of the singleton class.
+            :return: A string representation of the instance 
             """
             return self.dest
                             
@@ -237,6 +235,7 @@ class Annot_Reader():
         
         :param self: The instance of the Annot_Reader
         :param name: The attribute to access.
+        :return: An attribute of the innter class __Annot_Reader
         """
         return getattr(self.instance, name)
         
@@ -262,6 +261,7 @@ class Annot_Reader():
         function looks for the following string patterns.
             
         :param word: A string to determine if is an EC number or not.
+        :return: Boolean indicating if a string contains an EC number
         """
         word = word.strip()
         word = word.lower()
@@ -289,6 +289,7 @@ class Annot_Reader():
         Determines if 'word' is an ec number or not.
             
         :param word: A string to determine if is an EC number or not.
+        :return: A boolean indicating if a string is an EC number
         """
         word = word.strip()
         # Remove '(' characters
@@ -352,6 +353,7 @@ class Annot_Reader():
         :param txt: The string to match the keywords to
         :param keywords: The keywords to search for in txt as a list of 
                          tuples.
+        :return: Boolean indicating if a string matches the keywords
         """
         txt = txt.lower()
         for key in keywords:
@@ -369,6 +371,7 @@ class Annot_Reader():
         :param self: An instance of the Annot_Reader class
         :param row: The row to read
         :param col: The column to read
+        :return: The value of the excel cell
         """
         return self.df[col][row]
         
