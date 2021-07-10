@@ -40,7 +40,7 @@ class Annot_Reader():
             self.nt_seq = {}
             self.cols = {}
             self.rows = set(())
-            self.visible = None
+            self.visible = False
             
             if load_filepath is not None:
                 self.load_job(load_filepath)
@@ -86,7 +86,20 @@ class Annot_Reader():
             
             :param self: An instance of the Annot_Reader class.
             """
+            path = 'C:\\Users\\1985937\\Documents\\BI_Sum_2021\\EC-Scrape\\'
+            path += 'saved_jobs\\autosave_job.txt'
+            if len(self.rows) > 0:
+                self.save_job(path)
             self.close()
+                        
+            
+        def __str__(self):
+            """
+            Converts the instance of the __Annote_Reader class to a string
+            
+            :param self: The on instance of the singleton class.
+            """
+            return self.dest
             
             
         def load_job(self, filepath):
@@ -113,15 +126,6 @@ class Annot_Reader():
                     row = int(row)
                     self.rows.add(row)
             self.open(src, dest, sheet, visible)
-            
-            
-        def __str__(self):
-            """
-            Converts the instance of the __Annote_Reader class to a string
-            
-            :param self: The on instance of the singleton class.
-            """
-            return self.dest
                 
                 
         def open(self, src, dest, sheet, visible):
@@ -161,6 +165,30 @@ class Annot_Reader():
                     if val == "nucleotide_sequence":
                         self.cols['nucleotide_sequence'] \
                             = Annot_Reader.col_labels[c + 1]
+                            
+    
+        def save_job(self, filepath):
+            """
+            Saves the progress of the current working job.
+            
+            :param self: An instance of the Annot_Reader class
+            :param filepath: The filepath to save the job to.
+            """
+            if self.src is None or self.dest is None or self.sheet is None:
+                return 
+            f = open(filepath, 'w')
+            f.write(self.src)
+            f.write("\n")
+            f.write(self.dest)
+            f.write("\n")
+            f.write(str(self.sheet))
+            f.write("\n")
+            f.write(str(self.visible))
+            f.write("\n")
+            for row in self.rows:
+                f.write(str(row))
+                f.write("\n")
+            f.close()
                    
                    
     instance = None
@@ -188,7 +216,12 @@ class Annot_Reader():
             
         :param self: An instance of the Annot_Reader class.
         """
+        path = 'C:\\Users\\1985937\\Documents\\BI_Sum_2021\\EC-Scrape\\'
+        path += 'saved_jobs\\autosave_job.txt'
         if Annot_Reader.instance is not None:
+            if Annot_Reader.instance is not None \
+            and len(self.instance.rows) > 0:
+                Annot_Reader.instance.save_job(path)
             Annot_Reader.instance.close()
             
     
@@ -341,19 +374,7 @@ class Annot_Reader():
         :param self: An instance of the Annot_Reader class
         :param filepath: The filepath to save the job to.
         """
-        f = open(filepath, 'w')
-        f.write(self.instance.src)
-        f.write("\n")
-        f.write(self.instance.dest)
-        f.write("\n")
-        f.write(str(self.instance.sheet))
-        f.write("\n")
-        f.write(str(self.instance.visible))
-        f.write("\n")
-        for row in self.instance.rows:
-            f.write(str(row))
-            f.write("\n")
-        f.close()
+        self.instance.save_job(filepath)
         
         
     def write(self, val, row, col):
