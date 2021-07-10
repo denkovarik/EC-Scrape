@@ -8,7 +8,7 @@ from classes.NCBI import *
 
 class NCBI_tests(unittest.TestCase):
     """
-    Runs all tests for the Uniprot class.
+    Runs all tests for the NCBI class.
     """
     def test_search(self):
         """
