@@ -3,6 +3,9 @@ import xlwings as xw
 import pandas as pd
 import os, io, sys, inspect
 import time
+currentdir = os.path.dirname(os.path.abspath(inspect.getfile(inspect.currentframe())))
+parentdir = os.path.dirname(currentdir)
+sys.path.insert(0, parentdir)
 
 
 class Annot_Reader():
@@ -46,7 +49,32 @@ class Annot_Reader():
                 self.load_job(load_filepath)
             else:
                 self.open(src, dest, sheet, visible)
-                
+            
+        
+        def __del__(self):
+            """
+            Destroys an instance of the __Annote_Reader class.
+            
+            :param self: An instance of the Annot_Reader class.
+            """
+            dirpath = currentdir + '\\saved_jobs\\'
+            filename = 'autosave_job.txt'
+            if not os.path.isdir(dirpath):
+                os.mkdir(dirpath)
+            path = dirpath + filename
+            if len(self.rows) > 0:
+                self.save_job(path)
+            self.close()
+                        
+            
+        def __str__(self):
+            """
+            Converts the instance of the __Annote_Reader class to a string
+            
+            :param self: The on instance of the singleton class.
+            """
+            return self.dest
+                            
                 
         def close(self):
             """
@@ -78,28 +106,6 @@ class Annot_Reader():
             self.function = {}
             self.nt_seq = {}
             self.cols = {}
-            
-        
-        def __del__(self):
-            """
-            Destroys an instance of the __Annote_Reader class.
-            
-            :param self: An instance of the Annot_Reader class.
-            """
-            path = 'C:\\Users\\1985937\\Documents\\BI_Sum_2021\\EC-Scrape\\'
-            path += 'saved_jobs\\autosave_job.txt'
-            if len(self.rows) > 0:
-                self.save_job(path)
-            self.close()
-                        
-            
-        def __str__(self):
-            """
-            Converts the instance of the __Annote_Reader class to a string
-            
-            :param self: The on instance of the singleton class.
-            """
-            return self.dest
             
             
         def load_job(self, filepath):
