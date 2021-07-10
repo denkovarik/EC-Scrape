@@ -27,6 +27,7 @@ class NCBI():
             :param self: An instance of the NCBI.Protein class
             :param content: String from hit on NCBI Protein database.
             :param accession: The accession number of the protein
+            :return: The ec number in 'content'
             """
             s = 0
             s = content.find('accession "' + accession + '"', s)
@@ -57,6 +58,7 @@ class NCBI():
             :param self: An instance of the NCBI.Protein class
             :param content: String from hit on NCBI Protein database.
             :param acc: The accession number of the protein
+            :return: The protein and organims name
             """
             info = {}
             info['Protein name'] = self.extract_protein_name(content, acc)
@@ -72,6 +74,7 @@ class NCBI():
                 
             :param self: An instance of the NCBI.Protein class
             :param content: String from hit on NCBI Protein database.
+            :return: The organism from 'content'
             """
             s = 0        
             s = content.find('taxname', s)
@@ -88,6 +91,7 @@ class NCBI():
             :param self: An instance of the NCBI.Protein class
             :param content: String from hit on NCBI Protein database.
             :param accession: The accession number of the protein
+            :return: The protein name from 'content'
             """
             s = 0
             s = content.find('accession "' + accession + '"', s)
@@ -115,6 +119,7 @@ class NCBI():
             :param self: An in stance of the NCBI.Protein class
             :param content: The string of the hit on NCBI
             :param accession: The accession number of the protein
+            :return: Boolean indicating if 'content' has an ec number in it
             """
             s = 0
             s = content.find('accession "' + accession + '"', s)
@@ -142,6 +147,8 @@ class NCBI():
             :param self: An instance of the NCBI.Protein class.
             :param accession: The accesion number of the protein to search
             :param email: The user's email address
+            :return: The results for the search for the protein on NCBI via 
+                     their entrez api.
             """
             # NCBI may block users with no email :(
             Entrez.email = email
