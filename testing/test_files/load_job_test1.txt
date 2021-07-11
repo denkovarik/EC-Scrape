@@ -1,5 +1,15 @@
-C:\Users\1985937\Documents\BI_Sum_2021\EC-Scrape\testing\test_files\test_genome_annotation.xls
-C:\Users\1985937\Documents\BI_Sum_2021\EC-Scrape\testing\test_files\test_genome_annotation_cpy.xls
-0
-1
-14
+--src C:\Users\1985937\Documents\BI_Sum_2021\EC-Scrape\testing\test_files\test_genome_annotation.xls
+--dest C:\Users\1985937\Documents\BI_Sum_2021\EC-Scrape\testing\test_files\test_genome_annotation_cpy3.xls
+--sheet 0
+--keywords None
+--load_job None
+--email None
+--min_pct_idnt 97.0
+--min_qry_cvr 95.0
+--max_blast_hits 10
+--max_uniprot_hits 50
+--visible False
+======Rows_to_BLAST======
+4
+16
+=========================
