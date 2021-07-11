@@ -10,63 +10,41 @@ import math
 class Utils_tests(unittest.TestCase):
     """
     Runs all tests for the utility functions in utils.py.
-    """   
-    def test_parse_keywords(self):
+    """    
+    def test_build_cmd(self):
         """
-        Tests function parse_keywords() on its ability to parse the keywords 
-        and create the necessary data structure for it.'
+        Tests the utilities function 'build_cmd()' on its ability to build a 
+        command to run blast.py on the command line.
         
         :param self: An element of the Utils_tests class.
         """
-        # Test Case 1
-        keywords = 'hypothetical protein'
-        exp = [{"Not": False, "Keyword" : "hypothetical"}, 
-               {"Not": False, "Keyword" : "protein"}]
-        rslt = parse_keywords(keywords)
-        self.assertTrue(rslt == exp)
-        # Test Case 2
-        keywords = "'hypothetical protein'"
-        exp = [{"Not": False, "Keyword" : "hypothetical protein"}]
-        rslt = parse_keywords(keywords)
-        self.assertTrue(rslt == exp)
-        # Test Case 3
-        keywords = '"hypothetical protein"'
-        exp = [{"Not": False, "Keyword" : "hypothetical protein"}]
-        rslt = parse_keywords(keywords)
-        self.assertTrue(rslt == exp)
-        # Test Case 4
-        keywords = 'DNA Polymerase "hypothetical protein" Glutimate'
-        exp = [{"Not": False, "Keyword" : "DNA"}, 
-               {"Not": False, "Keyword" : "Polymerase"},
-               {"Not": False, "Keyword" : "hypothetical protein"},
-               {"Not": False, "Keyword" : "Glutimate"}]
-        rslt = parse_keywords(keywords)
-        self.assertTrue(rslt == exp)
-        # Test Case 5
-        keywords = 'NOT hypothetical protein'
-        exp = [{"Not": True, "Keyword" : "hypothetical"}, 
-               {"Not": False, "Keyword" : "protein"}]
-        rslt = parse_keywords(keywords)
-        self.assertTrue(rslt == exp)
-        # Test Case 6
-        keywords = 'hypothetical NOT protein'
-        exp = [{"Not": False, "Keyword" : "hypothetical"}, 
-               {"Not": True, "Keyword" : "protein"}]
-        rslt = parse_keywords(keywords)
-        self.assertTrue(rslt == exp)
-        # Test Case 7
-        keywords = 'NOT "hypothetical protein"'
-        exp = [{"Not": True, "Keyword" : "hypothetical protein"}]
-        rslt = parse_keywords(keywords)
-        self.assertTrue(rslt == exp)
-        # Test Case 8
-        keywords = 'NOT DNA Polymerase NOT "hypothetical protein" Glutimate'
-        exp = [{"Not": True, "Keyword" : "DNA"}, 
-               {"Not": False, "Keyword" : "Polymerase"},
-               {"Not": True, "Keyword" : "hypothetical protein"},
-               {"Not": False, "Keyword" : "Glutimate"}]
-        rslt = parse_keywords(keywords)
-        self.assertTrue(rslt == exp)
+        seq = 'AATTGGC'
+        email = 'dennis.kovarik@mines.sdsmt.edu'
+        out_file = "0.txt"
+        min_pct_idnt  = 97.0
+        min_qry_cvr = 95.0
+        max_blast_hits = 10
+        max_uniprot_hits = 50
+        query_id = 0
+        job1 = currentdir + '\\test_files\\' "load_job_test1.txt"
+        orig = currentdir + '\\test_files\\' "test_genome_annotation.xls"
+        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy3.xls"
+        args =  {
+                    '--src' : orig,
+                    '--dest' : cpy,
+                    '--sheet': 0,
+                    '--keywords' : None,
+                    '--visible' : False,
+                    '--load_job' : job1,
+                    '--email' : email, 
+                    '--min_pct_idnt' : min_pct_idnt,
+                    '--min_qry_cvr' : min_qry_cvr,
+                    '--max_blast_hits' : max_blast_hits,
+                    '--max_uniprot_hits' : max_uniprot_hits,
+                }
+        cmd = build_cmd(seq, out_file, query_id, args)
+        exp = ["py", "blast.py", "--fasta_sequence", "AATTGGC", "--email", "dennis.kovarik@mines.sdsmt.edu", "--out_file", "0.txt", "--id", "0", "--min_pct_idnt", "97.0", "--min_qry_cvr", "95.0", "--max_blast_hits", "10", "--max_uniprot_hits", "50"]
+        self.assertTrue(cmd == exp)
         
         
     def test_prcs_blast_rslts(self):
