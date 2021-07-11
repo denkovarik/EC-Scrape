@@ -24,7 +24,7 @@ def parse_args():
     """
     # Expected arguments
     outFile = None
-    sleep_time  = 0.5
+    sleep_time  = None
     fasta_sequence  = None
     email  = None
     min_pct_idnt  = 97.0
@@ -41,6 +41,7 @@ def parse_args():
                 '--max_blast_hits' : max_blast_hits,
                 '--max_uniprot_hits' : max_uniprot_hits,
                 '--sleep_time' : sleep_time,
+                '--id' : '0',
             }
     received = set(())
     required    = set(('--fasta_sequence', '--email'))
@@ -85,12 +86,13 @@ def print_usage():
     print("              --sleep_time <amount of time to sleep before preforming the blast>")
     print("")
     print("  Required params:\n\t--fasta_sequence\n\t--email")
-   
+    
 
-args = parse_args()   
+args = parse_args()  
 # BLAST requests that we don't flood the servers
 if args['--sleep_time'] is not None:
     sleep(args['--sleep_time'])
+
 # Perform the BLAST query
 result_handle = NCBIWWW.qblast(program="blastx", 
                                       database="nr", 
