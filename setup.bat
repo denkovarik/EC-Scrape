@@ -12,3 +12,5 @@ call py -m pip install xlrd
 call py -m pip install openpyxl
 :: Install PySimpleGUI
 call py -m pip install PySimpleGUI
+:: Install Progress Bar
+call py -m pip install progress progressbar2 alive-progress tqdm
