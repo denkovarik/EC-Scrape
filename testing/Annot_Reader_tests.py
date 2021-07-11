@@ -7,12 +7,46 @@ import shutil
 import xlwings as xw
 import pandas as pd
 from classes.Annot_Reader import *
+from utils import *
 
 
 class Annot_Reader_tests(unittest.TestCase):
     """
     Runs all tests for the Annot_Reader class.
     """
+    def test_autosave(self):
+        """
+        Tests Annot_Reader class to autosave if prematurely terminated.
+        
+        :param self: An instance of the Annot_Reader_tests class.
+        """
+        email  = None
+        min_pct_idnt  = 97.0
+        min_qry_cvr = 95.0
+        max_blast_hits = 10
+        max_uniprot_hits = 50
+        job1 = currentdir + '\\test_files\\' "load_job_test1.txt"
+        orig = currentdir + '\\test_files\\' "test_genome_annotation.xls"
+        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy3.xls"
+        args =  {
+                '--src' : orig,
+                '--dest' : cpy,
+                '--sheet': 0,
+                '--keywords' : None,
+                '--visible' : False,
+                '--load_job' : job1,
+                '--email' : email, 
+                '--min_pct_idnt' : min_pct_idnt,
+                '--min_qry_cvr' : min_qry_cvr,
+                '--max_blast_hits' : max_blast_hits,
+                '--max_uniprot_hits' : max_uniprot_hits,
+            }
+        # Construct an Annot_Reader
+        reader = Annot_Reader(args)
+        reader.autosave_filename = 'test_autosave.txt'
+        self.assertTrue(reader.rows == set((2,14)))   
+        
+            
     def test_load_job(self):
         """
         Tests Annot_Reader class on member function 'load_job()' on 
@@ -20,10 +54,125 @@ class Annot_Reader_tests(unittest.TestCase):
         
         :param self: An instance of the Annot_Reader_tests class.
         """
+        email  = None
+        min_pct_idnt  = 97.0
+        min_qry_cvr = 95.0
+        max_blast_hits = 10
+        max_uniprot_hits = 50
         job1 = currentdir + '\\test_files\\' "load_job_test1.txt"
+        args =  {
+                '--src' : None,
+                '--dest' : None,
+                '--sheet': 0,
+                '--keywords' : "hypothetical protein",
+                '--visible' : False,
+                '--load_job' : job1,
+                '--email' : email, 
+                '--min_pct_idnt' : min_pct_idnt,
+                '--min_qry_cvr' : min_qry_cvr,
+                '--max_blast_hits' : max_blast_hits,
+                '--max_uniprot_hits' : max_uniprot_hits,
+            }
         # Construct an Annot_Reader
-        reader = Annot_Reader(load_filepath=job1)
-        #reader.instance.rows = set((1,14))
+        reader = Annot_Reader(args)
+        reader.autosave_filename = 'test_autosave.txt'
+        self.assertTrue(reader.rows == set((2,14)))
+        self.assertTrue(reader.args['--keywords'] == None)
+        
+        
+    def test_parse_keywords(self):
+        """
+        Tests function parse_keywords() on its ability to parse the keywords 
+        and create the necessary data structure for it.'
+        
+        :param self: An element of the Annot_Reader_tests class.
+        """
+        # Test Case 1
+        keywords = 'hypothetical protein'
+        exp = [{"Not": False, "Keyword" : "hypothetical"}, 
+               {"Not": False, "Keyword" : "protein"}]
+        rslt = Annot_Reader.parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 2
+        keywords = "'hypothetical protein'"
+        exp = [{"Not": False, "Keyword" : "hypothetical protein"}]
+        rslt = Annot_Reader.parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 3
+        keywords = '"hypothetical protein"'
+        exp = [{"Not": False, "Keyword" : "hypothetical protein"}]
+        rslt = Annot_Reader.parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 4
+        keywords = 'DNA Polymerase "hypothetical protein" Glutimate'
+        exp = [{"Not": False, "Keyword" : "DNA"}, 
+               {"Not": False, "Keyword" : "Polymerase"},
+               {"Not": False, "Keyword" : "hypothetical protein"},
+               {"Not": False, "Keyword" : "Glutimate"}]
+        rslt = Annot_Reader.parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 5
+        keywords = 'NOT hypothetical protein'
+        exp = [{"Not": True, "Keyword" : "hypothetical"}, 
+               {"Not": False, "Keyword" : "protein"}]
+        rslt = Annot_Reader.parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 6
+        keywords = 'hypothetical NOT protein'
+        exp = [{"Not": False, "Keyword" : "hypothetical"}, 
+               {"Not": True, "Keyword" : "protein"}]
+        rslt = Annot_Reader.parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 7
+        keywords = 'NOT "hypothetical protein"'
+        exp = [{"Not": True, "Keyword" : "hypothetical protein"}]
+        rslt = Annot_Reader.parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 8
+        keywords = 'NOT DNA Polymerase NOT "hypothetical protein" Glutimate'
+        exp = [{"Not": True, "Keyword" : "DNA"}, 
+               {"Not": False, "Keyword" : "Polymerase"},
+               {"Not": True, "Keyword" : "hypothetical protein"},
+               {"Not": False, "Keyword" : "Glutimate"}]
+        rslt = Annot_Reader.parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 9
+        keywords = 'NOT (DNA Polymerase) NOT "hypothetical protein" Glutimate'
+        exp = [{"Not": True, "Keyword" : "DNA"}, 
+               {"Not": False, "Keyword" : "Polymerase"},
+               {"Not": True, "Keyword" : "hypothetical protein"},
+               {"Not": False, "Keyword" : "Glutimate"}]
+        rslt = Annot_Reader.parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 10
+        keywords = 'NOT -DNA Polymerase) NOT $"hypothetical protein" --Glutimate'
+        exp = [{"Not": True, "Keyword" : "DNA"}, 
+               {"Not": False, "Keyword" : "Polymerase"},
+               {"Not": True, "Keyword" : "hypothetical protein"},
+               {"Not": False, "Keyword" : "Glutimate"}]
+        rslt = Annot_Reader.parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 11
+        keywords = 'NOT -DNA Polymerase) NOT $"hypothetical-protein" --Glutimate'
+        exp = [{"Not": True, "Keyword" : "DNA"}, 
+               {"Not": False, "Keyword" : "Polymerase"},
+               {"Not": True, "Keyword" : "hypothetical-protein"},
+               {"Not": False, "Keyword" : "Glutimate"}]
+        rslt = Annot_Reader.parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 12
+        keywords = "NOT -DNA Polymerase) NOT $'hypothetical-protein' --Glutimate"
+        exp = [{"Not": True, "Keyword" : "DNA"}, 
+               {"Not": False, "Keyword" : "Polymerase"},
+               {"Not": True, "Keyword" : "hypothetical-protein"},
+               {"Not": False, "Keyword" : "Glutimate"}]
+        rslt = Annot_Reader.parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
+        # Test Case 13
+        keywords = None
+        exp = [{"Not": False, "Keyword" : "*"}]
+        rslt = Annot_Reader.parse_keywords(keywords)
+        self.assertTrue(rslt == exp)
         
         
     def test_save_job(self):
@@ -34,7 +183,7 @@ class Annot_Reader_tests(unittest.TestCase):
         :param self: An instance of the Annot_Reader_tests class.
         """
         orig = currentdir + '\\test_files\\' "test_genome_annotation.xls"
-        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xls"
+        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy3.xls"
         job1 = currentdir + '\\test_files\\' "job1.txt"
         self.assertTrue(os.path.isfile(orig))
         if os.path.isfile(cpy):
@@ -46,21 +195,84 @@ class Annot_Reader_tests(unittest.TestCase):
         # Now copy the file
         shutil.copyfile(orig, cpy)
         self.assertTrue(os.path.isfile(cpy))
+        email  = None
+        min_pct_idnt  = 97.0
+        min_qry_cvr = 95.0
+        max_blast_hits = 10
+        max_uniprot_hits = 50
+        args =  {
+                    '--src' : orig,
+                    '--dest' : cpy,
+                    '--sheet': 0,
+                    '--visible' : False,
+                    '--keywords' : "hypothetical protein",
+                    '--load_job' : None,
+                    '--email' : email, 
+                    '--min_pct_idnt' : min_pct_idnt,
+                    '--min_qry_cvr' : min_qry_cvr,
+                    '--max_blast_hits' : max_blast_hits,
+                    '--max_uniprot_hits' : max_uniprot_hits,
+                }
         # Construct an Annot_Reader
-        reader = Annot_Reader(orig, cpy, 0)
-        reader.instance.rows = set((1,14))
+        reader = Annot_Reader(args)
+        reader.autosave_filename = 'test_autosave.txt'
+        keywords = 'hypothetical protein'
+        keywords = Annot_Reader.parse_keywords(keywords)
+        reader.compile_rows(keywords)
         reader.save_job(job1)
         # Validate the results
         f = open(job1, 'r')
         txt = f.read()
         f.close()
         txt = txt.split("\n")
-        self.assertTrue(txt[0] == orig)
-        self.assertTrue(txt[1] == cpy)
-        self.assertTrue(txt[2] == "0")
-        self.assertTrue(txt[3] == "False")
-        self.assertTrue(txt[4] == "1")
-        self.assertTrue(txt[5] == "14")
+        for i in range(len(txt)):
+            line = txt[i]
+            if line != "======Rows_to_BLAST======" \
+            and line != "=========================":
+                params = line.split(" ")
+                if params[0] == "--src":
+                    exp = 'C:\\Users\\1985937\\Documents\\BI_Sum_2021\\EC-Scrape\\testing\\test_files\\test_genome_annotation.xls'
+                elif params[0] == "--dest":
+                    exp = 'C:\\Users\\1985937\\Documents\\BI_Sum_2021\\EC-Scrape\\testing\\test_files\\test_genome_annotation_cpy3.xls'
+                elif params[0] == "--sheet":
+                    exp = '0'
+                    self.assertTrue(params[1] == exp)
+                elif params[0] == "--keywords":
+                    keyword = ""
+                    for i in range(1, len(params)):
+                        keyword += params[i]
+                        if i < len(params) - 1:
+                            keyword += " "                  
+                    exp = 'hypothetical protein'
+                    self.assertTrue(keyword == exp)
+                elif params[0] == "--load_job":
+                    exp = 'None'
+                    self.assertTrue(params[1] == exp)
+                elif params[0] == "--email":
+                    exp = 'None'
+                    self.assertTrue(params[1] == exp)
+                elif params[0] == "--min_pct_idnt":
+                    exp = '97.0'
+                    self.assertTrue(params[1] == exp)
+                elif params[0] == "--min_qry_cvr":
+                    exp = '95.0'
+                    self.assertTrue(params[1] == exp)
+                elif params[0] == "--max_blast_hits":
+                    exp = '10'
+                    self.assertTrue(params[1] == exp)
+                elif params[0] == "--max_uniprot_hits":
+                    exp = '50'
+                    self.assertTrue(params[1] == exp)
+            elif line == '======Rows_to_BLAST======':
+                i += 1
+                received = set(())
+                expected = set((4, 16))
+                while txt[i] != '=========================':
+                    val = int(txt[i].strip())
+                    received.add(val)
+                    i += 1
+                self.assertTrue(received == expected)
+            i += 1
         
         
     def test_compile_rows(self):
@@ -76,11 +288,30 @@ class Annot_Reader_tests(unittest.TestCase):
         if os.path.isfile(cpy):
             os.remove(cpy)
         self.assertFalse(os.path.isfile(cpy))
+        email  = None
+        min_pct_idnt  = 97.0
+        min_qry_cvr = 95.0
+        max_blast_hits = 10
+        max_uniprot_hits = 50
+        args =  {
+                    '--src' : orig,
+                    '--dest' : cpy,
+                    '--sheet': 0,
+                    '--visible' : False,
+                    '--keywords' : "hypothetical protein",
+                    '--load_job' : None,
+                    '--email' : email, 
+                    '--min_pct_idnt' : min_pct_idnt,
+                    '--min_qry_cvr' : min_qry_cvr,
+                    '--max_blast_hits' : max_blast_hits,
+                    '--max_uniprot_hits' : max_uniprot_hits,
+                }
         # Now copy the file
         shutil.copyfile(orig, cpy)
         self.assertTrue(os.path.isfile(cpy))
         # Construct an Annot_Reader
-        reader = Annot_Reader(orig, cpy, 0)
+        reader = Annot_Reader(args)
+        reader.autosave_filename = 'test_autosave.txt'
         keywords = [{"Not": False, "Keyword" : "hypothetical"}]
         reader.compile_rows(keywords)
         self.assertTrue(reader.rows == set((2, 14)))
@@ -125,16 +356,29 @@ class Annot_Reader_tests(unittest.TestCase):
         # Test case 7
         txt = "hypothetical protein"
         txt2 = "DNA polymerase IV (EC 2.7.7.7)"
-        keywords = [{"Not": True, "Keyword" : "*"}]
+        keywords = [{"Not": False, "Keyword" : "*"}]
         self.assertTrue(Annot_Reader.matches_keywords(txt, keywords))
         self.assertTrue(Annot_Reader.matches_keywords(txt2, keywords))
-        # Test case 7
+        # Test case 8
         txt = "hypothetical protein"
         txt2 = "DNA polymerase IV (EC 2.7.7.7)"
-        keywords = [{"Not": True, "Keyword" : "*"},
+        keywords = [{"Not": False, "Keyword" : "*"},
                     {"Not": True, "Keyword" : "hypothetical"}]
         self.assertFalse(Annot_Reader.matches_keywords(txt, keywords))
         self.assertTrue(Annot_Reader.matches_keywords(txt2, keywords))
+        # Test case 9
+        txt = "hypothetical protein"
+        txt2 = "DNA polymerase IV (EC 2.7.7.7)"
+        keywords = [{"Not": True, "Keyword" : "*"}]
+        self.assertFalse(Annot_Reader.matches_keywords(txt, keywords))
+        self.assertFalse(Annot_Reader.matches_keywords(txt2, keywords))
+        # Test case 10
+        txt = "hypothetical protein"
+        txt2 = "DNA polymerase IV (EC 2.7.7.7)"
+        keywords = [{"Not": True, "Keyword" : "*"},
+                    {"Not": False, "Keyword" : "hypothetical"}]
+        self.assertFalse(Annot_Reader.matches_keywords(txt, keywords))
+        self.assertFalse(Annot_Reader.matches_keywords(txt2, keywords))
         
     
     def test_is_ec(self):
@@ -234,7 +478,26 @@ class Annot_Reader_tests(unittest.TestCase):
         # Now copy the file
         shutil.copyfile(orig, cpy)
         self.assertTrue(os.path.isfile(cpy))
-        reader = Annot_Reader(orig, cpy, 0)
+        email  = None
+        min_pct_idnt  = 97.0
+        min_qry_cvr = 95.0
+        max_blast_hits = 10
+        max_uniprot_hits = 50
+        args =  {
+                    '--src' : orig,
+                    '--dest' : cpy,
+                    '--sheet': 0,
+                    '--visible' : False,
+                    '--keywords' : None,
+                    '--load_job' : None,
+                    '--email' : email, 
+                    '--min_pct_idnt' : min_pct_idnt,
+                    '--min_qry_cvr' : min_qry_cvr,
+                    '--max_blast_hits' : max_blast_hits,
+                    '--max_uniprot_hits' : max_uniprot_hits,
+                }
+        reader = Annot_Reader(args)
+        reader.autosave_filename = 'test_autosave.txt'
         self.assertTrue(reader.has_ec(reader.read(0, 'function')))
         self.assertTrue(reader.has_ec(reader.read(1, 'function')))
         self.assertFalse(reader.has_ec(reader.read(2, 'function')))
@@ -264,19 +527,36 @@ class Annot_Reader_tests(unittest.TestCase):
         :param self: An instance of the Annot_Reader_tests class.
         """
         orig = currentdir + '\\test_files\\' + 'test_genome_annotation.xls'
-        cpy = currentdir + '\\test_files\\' + 'test_genome_annotation_write.xls'
-        self.assertTrue(os.path.isfile(cpy))
+        cpy = currentdir + '\\test_files\\' \
+                         + 'test_genome_annotation_write2.xls'
+        email  = None
+        min_pct_idnt  = 97.0
+        min_qry_cvr = 95.0
+        max_blast_hits = 10
+        max_uniprot_hits = 50
+        args =  {
+                    '--src' : orig,
+                    '--dest' : cpy,
+                    '--sheet': 0,
+                    '--visible' : False,
+                    '--keywords' : None,
+                    '--load_job' : None,
+                    '--email' : email, 
+                    '--min_pct_idnt' : min_pct_idnt,
+                    '--min_qry_cvr' : min_qry_cvr,
+                    '--max_blast_hits' : max_blast_hits,
+                    '--max_uniprot_hits' : max_uniprot_hits,
+                }
         # Construct an Annot_Reader
-        reader = Annot_Reader(orig, cpy, 0)
+        reader = Annot_Reader(args)
+        reader.autosave_filename = 'test_autosave.txt'
         write_row = 3
         write_col = "function"
         val = reader.read(write_row, write_col)
         val += " Modified++"
         reader.write(val, write_row, write_col)
         exp = "DNA polymerase IV (EC 2.7.7.7) Modified++"
-        del(reader)
-        validator = Annot_Reader(cpy, cpy, 0)
-        self.assertTrue(validator.read(write_row, write_col) == exp)
+        self.assertTrue(reader.read(write_row, write_col) == exp)
         
         
     def test_init(self):
@@ -296,23 +576,39 @@ class Annot_Reader_tests(unittest.TestCase):
         # Now copy the file
         shutil.copyfile(orig, cpy)
         self.assertTrue(os.path.isfile(cpy))
+        email  = None
+        min_pct_idnt  = 97.0
+        min_qry_cvr = 95.0
+        max_blast_hits = 10
+        max_uniprot_hits = 50
+        args =  {
+                    '--src' : orig,
+                    '--dest' : cpy,
+                    '--sheet': 0,
+                    '--visible' : False,
+                    '--keywords' : None,
+                    '--load_job' : None,
+                    '--email' : email, 
+                    '--min_pct_idnt' : min_pct_idnt,
+                    '--min_qry_cvr' : min_qry_cvr,
+                    '--max_blast_hits' : max_blast_hits,
+                    '--max_uniprot_hits' : max_uniprot_hits,
+                }
         # Construct an Annot_Reader
-        reader = Annot_Reader(orig, cpy, 0)
+        reader = Annot_Reader(args)
+        reader.autosave_filename = 'test_autosave.txt'
         self.assertTrue(reader.dest == cpy)
         self.assertTrue(reader.header['start row'] == 1)
         self.assertTrue(reader.cols['function'] == 'H')
         del(reader)
         # Reload singleton class
-        reader = Annot_Reader(orig, orig, 0)
+        args['--dest'] = orig
+        reader = Annot_Reader(args)
+        reader.autosave_filename = 'test_autosave.txt'
         self.assertTrue(reader.dest == orig)
         # Loading file with shifted data frame
         self.assertTrue(os.path.isfile(shifted))
-        del(reader)
-        reader = Annot_Reader(shifted, shifted, 0)
-        self.assertTrue(reader.instance.dest == shifted)
-        self.assertTrue(reader.header['start row'] == 3)
-        self.assertTrue(reader.cols['function'] == 'K')
-    
+        
         
     def test_read_cell(self):
         """
@@ -329,7 +625,26 @@ class Annot_Reader_tests(unittest.TestCase):
         # Now copy the file
         shutil.copyfile(orig, cpy)
         self.assertTrue(os.path.isfile(cpy))
-        reader = Annot_Reader(orig, cpy, 0)
+        email  = None
+        min_pct_idnt  = 97.0
+        min_qry_cvr = 95.0
+        max_blast_hits = 10
+        max_uniprot_hits = 50
+        args =  {
+                    '--src' : orig,
+                    '--dest' : cpy,
+                    '--sheet': 0,
+                    '--visible' : False,
+                    '--keywords' : None,
+                    '--load_job' : None,
+                    '--email' : email, 
+                    '--min_pct_idnt' : min_pct_idnt,
+                    '--min_qry_cvr' : min_qry_cvr,
+                    '--max_blast_hits' : max_blast_hits,
+                    '--max_uniprot_hits' : max_uniprot_hits,
+                }
+        reader = Annot_Reader(args)
+        reader.autosave_filename = 'test_autosave.txt'
         exp = "DNA polymerase IV (EC 2.7.7.7)"
         self.assertTrue(reader.read(3, 'function') == exp)
         
@@ -349,23 +664,6 @@ class Annot_Reader_tests(unittest.TestCase):
         self.assertTrue(Annot_Reader.col_labels["Z"] == 26)
         self.assertTrue(Annot_Reader.col_labels["AA"] == 27)
         self.assertTrue(Annot_Reader.col_labels["AB"] == 28)
-           
-        
-    def test_copy(self):
-        """
-        Justs tests copying an excel file.
-        
-        :param self: An instance of the Annot_Reader_tests class.
-        """
-        orig = currentdir + '\\test_files\\' "test_genome_annotation.xls"
-        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xls"
-        self.assertTrue(os.path.isfile(orig))
-        if os.path.isfile(cpy):
-            os.remove(cpy)
-        self.assertFalse(os.path.isfile(cpy))
-        # Now copy the file
-        shutil.copyfile(orig, cpy)
-        self.assertTrue(os.path.isfile(cpy))
         
         
     def test_execution(self):
