@@ -300,10 +300,12 @@ def parse_args_ec_scrape():
     required    = set(('--src', '--email', '--dest'))
     float_args  = set(('--min_pct_idnt', '--min_qry_cvr'))
     int_args    = set(('--max_blast_hits', '--max_uniprot_hits'))
+
     if len(sys.argv) % 2 != 1:
         print("Invalid command line arguements")
         print_usage_ec_scrape()
         exit()
+    
     # Parse the arguements
     for i in range(1, len(sys.argv), +2):
         arg = sys.argv[i]
@@ -315,7 +317,8 @@ def parse_args_ec_scrape():
             elif arg in int_args:
                 args[arg] = int(val)
             elif arg == '--keywords':
-                args[arg] = parse_keywords(arg)
+
+                args[arg] = val
             elif arg == '--visible':
                 visible = False
                 if args['--visible'] == 'True':
@@ -335,8 +338,6 @@ def parse_args_ec_scrape():
     if not os.path.isfile(args['--src']):
         print(args['--src'] + " does not exist")
         print_usage_ec_scrape()()
-    if args['--keywords'] is not None:
-        args['--keywords'] = parse_keywords(args['--keywords'])
     return args
     
     
