@@ -2,8 +2,93 @@ import xml.etree.cElementTree as et
 from classes.NCBI import NCBI
 from classes.Uniprot import *
 from classes.Annot_Reader import *
+from time import sleep
+from progress.bar import IncrementalBar
+import random
+import sys, os, time
+from subprocess import Popen, list2cmdline
 
 
+def cpu_count():
+    ''' Returns the number of CPUs in the system
+    '''
+    num = 1
+    if sys.platform == 'win32':
+        try:
+            num = int(os.environ['NUMBER_OF_PROCESSORS'])
+        except (ValueError, KeyError):
+            pass
+    elif sys.platform == 'darwin':
+        try:
+            num = int(os.popen('sysctl -n hw.ncpu').read())
+        except ValueError:
+            pass
+    else:
+        try:
+            num = os.sysconf('SC_NPROCESSORS_ONLN')
+        except (ValueError, OSError, AttributeError):
+            pass
+
+    return num
+
+
+def exec_commands(cmds, max_task):
+    ''' Exec commands in parallel in multiple process 
+    (as much as we have CPU)
+    '''
+    if not cmds: return # empty list
+
+    def done(p):
+        return p.poll() is not None
+    def success(p):
+        return p.returncode == 0
+    def fail():
+        sys.exit(1)
+
+    #max_task = cpu_count()
+    processes = []
+    while True:
+        while cmds and len(processes) < max_task:
+            task = cmds.pop()
+            os.system(list2cmdline(task))
+            processes.append(Popen(task))
+
+        for p in processes:
+            if done(p):
+                if success(p):
+                    processes.remove(p)
+                else:
+                    fail()
+
+        if not processes and not cmds:
+            break
+        else:
+            time.sleep(5)
+
+
+def build_cmd(seq, out_file, query_id, args):
+    """
+    Builds a command to run blast.py on the command line.
+    
+    :param seq: A fasta sequence to BLAST
+    :param out_file: The name of the file to store the results in
+    :param query_id: The id of the query
+    :param args: A dictionary of arguments need for the BLAST and EC search 
+                 from online databases.
+    :return: The command to run blast.py on the command line.
+    """
+    cmd = ["py", "blast.py", \
+            "--fasta_sequence", seq, \
+            "--email", args["--email"], \
+            "--out_file", out_file, \
+            "--id", str(query_id), \
+            "--min_pct_idnt", str(args["--min_pct_idnt"]), \
+            "--min_qry_cvr", str(args["--min_qry_cvr"]), \
+            "--max_blast_hits", str(args["--max_blast_hits"]), \
+            "--max_uniprot_hits", str(args["--max_uniprot_hits"])]
+    return cmd
+       
+    
 def ec_scrape(acc, email, max_uniprot_hits):
     """
     Scrapes the web for the ec number for the protein with the given 
@@ -119,8 +204,6 @@ def extract_ec(txt):
                             return txt[s:e]
     return ""
         
-    
-
 
 def parse_blast_xml(xml, seq_len = None):
     """
@@ -205,7 +288,8 @@ def parse_args_ec_scrape():
                 '--dest' : None,
                 '--sheet': 0,
                 '--keywords' : None,
-                '--load_job' : False,
+                '--visible' : False,
+                '--load_job' : None,
                 '--email' : email, 
                 '--min_pct_idnt' : min_pct_idnt,
                 '--min_qry_cvr' : min_qry_cvr,
@@ -232,6 +316,11 @@ def parse_args_ec_scrape():
                 args[arg] = int(val)
             elif arg == '--keywords':
                 args[arg] = parse_keywords(arg)
+            elif arg == '--visible':
+                visible = False
+                if args['--visible'] == 'True':
+                    visible = True
+                args['--visible'] = visible
             elif arg in args:
                 args[arg] = val
     # Check that the required arguments where passed in
@@ -246,75 +335,9 @@ def parse_args_ec_scrape():
     if not os.path.isfile(args['--src']):
         print(args['--src'] + " does not exist")
         print_usage_ec_scrape()()
+    if args['--keywords'] is not None:
+        args['--keywords'] = parse_keywords(args['--keywords'])
     return args
-    
-    
-def parse_keywords(keywords):
-    """
-    Parses a string of keywords and returns a list of dictionaries that represent the keywords. Each keyword is expected to be space separated. To search for phrases or groups of words, they must be surrounded by quotes. Each keyword is assumed to have the 'AND' condition. This means that only rows containing all keywords will be selected. The logical condition 'OR' is not yet supported. If you would like to exclude rows that contain certain keywords, this can be done by placing the 'NOT' keyword or phrase that you wish to exclude.
-    
-    For example, if you want to search for rows containing the keywords 'hypothetical' and 'protein', this can be done in the following way:
-    
-            hypothetical protein
-            
-    If you want to select rows not containing the phrase 'hypothetical protein', this can be done by the following:
-    
-            NOT 'hypothetical protein'
-            
-    If you want to select rows not containing the keyword hypothetical and select rows containing the keyword 'protein', this can be done by the following:
-    
-            NOT hypothetical protein
-            
-    :param keywords: The keywords to parse_args_ec_scrape
-    :return: The keywords as a list of dictionaries
-    """
-    s = 0
-    e = s
-    comp_kw = []
-    is_not = False
-    phrase_single = False
-    while e < len(keywords):
-        # Capture phrase surrounded by single quotes
-        if keywords[e] == "'":
-            # Find the other single quote
-            s = e
-            stop = False
-            while e < len(keywords) and not stop:
-                if keywords[e] == "'" and keywords[s+1:e].strip() != '':
-                    comp_kw += [{'Not'     : is_not, \
-                                 'Keyword' : keywords[s+1:e].strip()}]
-                    is_not = False
-                    s = e + 1
-                    stop = True
-                e += 1
-        # Capture phrase surrounded by double quotes
-        elif keywords[e] == '"':
-            # Find the other single quote
-            s = e
-            stop = False
-            while e < len(keywords) and not stop:
-                if keywords[e] == '"' and keywords[s+1:e].strip() != '':
-                    comp_kw += [{'Not'     : is_not, \
-                                 'Keyword' : keywords[s+1:e].strip()}]
-                    s = e + 1
-                    is_not = False
-                    stop = True
-                e += 1
-        elif keywords[e] == ' ':
-            if keywords[s:e].strip() == "":
-                pass
-            elif keywords[s:e].strip() == "NOT":
-                is_not = True
-            else:
-                comp_kw += [{'Not'     : is_not, \
-                             'Keyword' : keywords[s:e].strip()}]
-                is_not = False
-            s = e
-        e += 1
-    # Add the last words
-    if keywords[s:e].strip() != "":
-        comp_kw += [{'Not' : is_not, 'Keyword' : keywords[s:e].strip()}]
-    return comp_kw
     
     
 def print_usage_ec_scrape():
