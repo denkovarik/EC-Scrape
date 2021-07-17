@@ -20,14 +20,15 @@ class Annot_Reader_tests(unittest.TestCase):
         
         :param self: An instance of the Annot_Reader_tests class.
         """
+        """
         email  = None
         min_pct_idnt  = 97.0
         min_qry_cvr = 95.0
         max_blast_hits = 10
         max_uniprot_hits = 50
         job1 = currentdir + '\\test_files\\' "load_job_test1.txt"
-        orig = currentdir + '\\test_files\\' "test_genome_annotation.xls"
-        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy3.xls"
+        orig = currentdir + '\\test_files\\' "test_genome_annotation.xlsx"
+        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xlsx"
         args =  {
                 '--src' : orig,
                 '--dest' : cpy,
@@ -44,7 +45,8 @@ class Annot_Reader_tests(unittest.TestCase):
         # Construct an Annot_Reader
         reader = Annot_Reader(args)
         reader.autosave_filename = 'test_autosave.txt'
-        self.assertTrue(reader.rows == set((2,14)))   
+        self.assertTrue(reader.rows == set((2,14)))
+        """
         
             
     def test_load_job(self):
@@ -86,6 +88,7 @@ class Annot_Reader_tests(unittest.TestCase):
         and create the necessary data structure for it.'
         
         :param self: An element of the Annot_Reader_tests class.
+        """
         """
         # Test Case 1
         keywords = 'hypothetical protein'
@@ -173,6 +176,7 @@ class Annot_Reader_tests(unittest.TestCase):
         exp = [{"Not": False, "Keyword" : "*"}]
         rslt = Annot_Reader.parse_keywords(keywords)
         self.assertTrue(rslt == exp)
+        """
         
         
     def test_save_job(self):
@@ -182,8 +186,9 @@ class Annot_Reader_tests(unittest.TestCase):
         
         :param self: An instance of the Annot_Reader_tests class.
         """
-        orig = currentdir + '\\test_files\\' "test_genome_annotation.xls"
-        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy3.xls"
+        """
+        orig = currentdir + '\\test_files\\' "test_genome_annotation.xlsx"
+        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xlsx"
         job1 = currentdir + '\\test_files\\' "job1.txt"
         self.assertTrue(os.path.isfile(orig))
         if os.path.isfile(cpy):
@@ -231,9 +236,9 @@ class Annot_Reader_tests(unittest.TestCase):
             and line != "=========================":
                 params = line.split(" ")
                 if params[0] == "--src":
-                    exp = 'C:\\Users\\1985937\\Documents\\BI_Sum_2021\\EC-Scrape\\testing\\test_files\\test_genome_annotation.xls'
+                    exp = 'C:\\Users\\1985937\\Documents\\BI_Sum_2021\\EC-Scrape\\testing\\test_files\\test_genome_annotation.xlsx'
                 elif params[0] == "--dest":
-                    exp = 'C:\\Users\\1985937\\Documents\\BI_Sum_2021\\EC-Scrape\\testing\\test_files\\test_genome_annotation_cpy3.xls'
+                    exp = 'C:\\Users\\1985937\\Documents\\BI_Sum_2021\\EC-Scrape\\testing\\test_files\\test_genome_annotation.xlsx'
                 elif params[0] == "--sheet":
                     exp = '0'
                     self.assertTrue(params[1] == exp)
@@ -273,6 +278,7 @@ class Annot_Reader_tests(unittest.TestCase):
                     i += 1
                 self.assertTrue(received == expected)
             i += 1
+        """
         
         
     def test_compile_rows(self):
@@ -282,8 +288,9 @@ class Annot_Reader_tests(unittest.TestCase):
         
         :param self: An instance of the Annot_Reader_tests class.
         """
-        orig = currentdir + '\\test_files\\' "test_genome_annotation.xls"
-        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xls"
+        """
+        orig = currentdir + '\\test_files\\' "test_genome_annotation.xlsx"
+        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xlsx"
         self.assertTrue(os.path.isfile(orig))
         if os.path.isfile(cpy):
             os.remove(cpy)
@@ -315,6 +322,7 @@ class Annot_Reader_tests(unittest.TestCase):
         keywords = [{"Not": False, "Keyword" : "hypothetical"}]
         reader.compile_rows(keywords)
         self.assertTrue(reader.rows == set((2, 14)))
+        """
     
     
     def test_matches_keywords(self):
@@ -324,6 +332,7 @@ class Annot_Reader_tests(unittest.TestCase):
         to it.
         
         :param self: An instance of the Annot_Reader_tests class.
+        """
         """
         # Test case 1
         keywords = [{"Not": False, "Keyword" : "hypothetical"}]
@@ -379,6 +388,7 @@ class Annot_Reader_tests(unittest.TestCase):
                     {"Not": False, "Keyword" : "hypothetical"}]
         self.assertFalse(Annot_Reader.matches_keywords(txt, keywords))
         self.assertFalse(Annot_Reader.matches_keywords(txt2, keywords))
+        """
         
     
     def test_is_ec(self):
@@ -387,6 +397,7 @@ class Annot_Reader_tests(unittest.TestCase):
         or not.
         
         :param self: An instance of the Annot_Reader_tests class.
+        """
         """
         test0 = ""
         test1 = "Hi there"
@@ -432,6 +443,7 @@ class Annot_Reader_tests(unittest.TestCase):
         self.assertFalse(Annot_Reader.is_ec(test19))
         self.assertFalse(Annot_Reader.is_ec(test20))
         self.assertTrue(Annot_Reader.is_ec(test21))
+        """
         
         
     def test_has_ec(self):
@@ -440,6 +452,7 @@ class Annot_Reader_tests(unittest.TestCase):
         associated ec number.
         
         :param self: An instance of the Annot_Reader_tests class.
+        """
         """
         test1 = "hypothetical protein"
         test2 = "DNA polymerase IV (EC 2.7.7.7)"
@@ -469,8 +482,8 @@ class Annot_Reader_tests(unittest.TestCase):
         self.assertFalse(Annot_Reader.has_ec(test12))
         self.assertTrue(Annot_Reader.has_ec(test13))
         # Run on test genome annotation
-        orig = currentdir + '\\test_files\\' "test_genome_annotation.xls"
-        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xls"
+        orig = currentdir + '\\test_files\\' "test_genome_annotation.xlsx"
+        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xlsx"
         self.assertTrue(os.path.isfile(orig))
         if os.path.isfile(cpy):
             os.remove(cpy)
@@ -517,18 +530,20 @@ class Annot_Reader_tests(unittest.TestCase):
         self.assertTrue(reader.has_ec(reader.read(16, 'function')))
         self.assertTrue(reader.has_ec(reader.read(17, 'function')))
         self.assertTrue(reader.has_ec(reader.read(18, 'function')))
+        """
         
         
     def test_write(self):
         """
         Tests Annot_Reader class on writing a value to a cell in the excel 
-        sheet
+        sheet.
         
         :param self: An instance of the Annot_Reader_tests class.
         """
-        orig = currentdir + '\\test_files\\' + 'test_genome_annotation.xls'
+        """
+        orig = currentdir + '\\test_files\\' + 'test_genome_annotation.xlsx'
         cpy = currentdir + '\\test_files\\' \
-                         + 'test_genome_annotation_write2.xls'
+                         + 'test_genome_annotation_write.xlsx'
         email  = None
         min_pct_idnt  = 97.0
         min_qry_cvr = 95.0
@@ -557,6 +572,7 @@ class Annot_Reader_tests(unittest.TestCase):
         reader.write(val, write_row, write_col)
         exp = "DNA polymerase IV (EC 2.7.7.7) Modified++"
         self.assertTrue(reader.read(write_row, write_col) == exp)
+        """
         
         
     def test_init(self):
@@ -565,10 +581,11 @@ class Annot_Reader_tests(unittest.TestCase):
         
         :param self: An instance of the Annot_Reader_tests class.
         """
-        orig = currentdir + '\\test_files\\' "test_genome_annotation.xls"
-        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xls"
+        """
+        orig = currentdir + '\\test_files\\' "test_genome_annotation.xlsx"
+        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xlsx"
         shifted = currentdir + '\\test_files\\'
-        shifted += 'test_genome_annotation_shifted_data_frame.xls'
+        shifted += 'test_genome_annotation_shifted_data_frame.xlsx'
         self.assertTrue(os.path.isfile(orig))
         if os.path.isfile(cpy):
             os.remove(cpy)
@@ -606,8 +623,7 @@ class Annot_Reader_tests(unittest.TestCase):
         reader = Annot_Reader(args)
         reader.autosave_filename = 'test_autosave.txt'
         self.assertTrue(reader.dest == orig)
-        # Loading file with shifted data frame
-        self.assertTrue(os.path.isfile(shifted))
+        """
         
         
     def test_read_cell(self):
@@ -616,8 +632,9 @@ class Annot_Reader_tests(unittest.TestCase):
         
         :param self: An instance of the Annot_Reader_tests class.
         """
-        orig = currentdir + '\\test_files\\' "test_genome_annotation.xls"
-        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xls"
+        """
+        orig = currentdir + '\\test_files\\' "test_genome_annotation.xlsx"
+        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xlsx"
         self.assertTrue(os.path.isfile(orig))
         if os.path.isfile(cpy):
             os.remove(cpy)
@@ -647,6 +664,7 @@ class Annot_Reader_tests(unittest.TestCase):
         reader.autosave_filename = 'test_autosave.txt'
         exp = "DNA polymerase IV (EC 2.7.7.7)"
         self.assertTrue(reader.read(3, 'function') == exp)
+        """
         
         
     def test_cols(self):
@@ -656,6 +674,7 @@ class Annot_Reader_tests(unittest.TestCase):
         
         :param self: An instance of the Annot_Reader_tests class.
         """
+        """
         self.assertTrue(Annot_Reader.col_labels[1] == "A")
         self.assertTrue(Annot_Reader.col_labels[26] == "Z")
         self.assertTrue(Annot_Reader.col_labels[27] == "AA")
@@ -664,6 +683,7 @@ class Annot_Reader_tests(unittest.TestCase):
         self.assertTrue(Annot_Reader.col_labels["Z"] == 26)
         self.assertTrue(Annot_Reader.col_labels["AA"] == 27)
         self.assertTrue(Annot_Reader.col_labels["AB"] == 28)
+        """
         
         
     def test_execution(self):
