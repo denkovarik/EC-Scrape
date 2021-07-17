@@ -204,7 +204,76 @@ def extract_ec(txt):
                                 e += 1
                             return txt[s:e]
     return ""
+    
+    
+def online_blast_ec_scrape(reader, args):
+    """
+    Uses Biopython's api to blast sequences. It will then use these results 
+    to scrape NCBI protein database and Uniprot for the ec numbers of 
+    proteins.
         
+    :param reader: An instance of the Annot_Reader class for reading the 
+                   excel sheet genome annotation.
+    :param args: A python dictionary of command line arguements.
+    """
+    rows_to_process = set((reader.rows))
+    processing = set(())
+    # Create temp dir to hold results returned from processes
+    if not os.path.isdir('temp\\'):
+        os.mkdir('temp\\')
+        
+    # Start Blasting
+    itr = iter(rows_to_process)
+    num_rows = len(rows_to_process)
+    bar = IncrementalBar('| BLASTing Sequences...', max = num_rows)
+    num_processing = 0 
+    max_num_processes = args['--num_threads']
+    tempdir = 'temp\\'
+    count = 0
+
+    # Make sure there are no files left in temp dir
+    for file in os.listdir(tempdir):
+        path = tempdir + file
+        os.remove(path)
+
+    if args['--from_downloaded_blast']:
+        print("here")
+        exit()
+
+    while len(reader.rows) > 0:
+        cmd = []
+        rows_added = []
+        while count < num_rows and len(processing) < max_num_processes:
+            row = next(itr)
+            # Read the Sequences
+            seq = reader.read(row, 'nucleotide_sequence')
+            out_file = tempdir + str(row) + ".txt"
+            cmd += [build_cmd(seq, out_file, row, args)]
+            processing.add(row)
+            count += 1
+        if len(cmd) > 0:
+            # Blast the sequence
+            num_processing += len(processing)
+            exec_commands(cmd, max_num_processes)       
+        while len(os.listdir(tempdir)) > 0:
+            filename = os.listdir(tempdir)[0]
+            filepath = tempdir + filename
+            f = open(filepath, 'r')
+            content = f.read()
+            f.close()
+            os.remove(filepath)
+            completed_row = filename.split(".")[0]
+            completed_row = completed_row.strip()
+            completed_row = int(completed_row)
+            val = reader.read(completed_row, 'function') + " " + content
+            reader.write(val, completed_row, 'function')
+            reader.rows.remove(completed_row)
+            processing.remove(completed_row)
+            bar.next()
+            num_processing -= 1
+        # Autosave
+        reader.save_job(reader.autosave_filename)
+    
 
 def parse_blast_xml(xml, seq_len = None):
     """
@@ -303,7 +372,8 @@ def parse_args_ec_scrape():
     received = set(())
     required    = set(('--src', '--email', '--dest'))
     float_args  = set(('--min_pct_idnt', '--min_qry_cvr'))
-    int_args    = set(('--max_blast_hits', '--max_uniprot_hits'))
+    int_args    = set(('--max_blast_hits', '--max_uniprot_hits', \
+                       '--num_threads'))
 
     if len(sys.argv) % 2 != 1:
         print("Invalid command line arguements")
