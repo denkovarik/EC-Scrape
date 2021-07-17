@@ -1,5 +1,5 @@
---src C:\Users\1985937\Documents\BI_Sum_2021\EC-Scrape\testing\test_files\test_genome_annotation.xls
---dest C:\Users\1985937\Documents\BI_Sum_2021\EC-Scrape\testing\test_files\test_genome_annotation_cpy3.xls
+--src C:\Users\1985937\Documents\BI_Sum_2021\EC-Scrape\testing\test_files\test_genome_annotation.xlsx
+--dest C:\Users\1985937\Documents\BI_Sum_2021\EC-Scrape\testing\test_files\test_genome_annotation_cpy.xls
 --sheet 0
 --keywords None
 --load_job None
