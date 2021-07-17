@@ -52,6 +52,7 @@ def exec_commands(cmds, max_task):
             task = cmds.pop()
             os.system(list2cmdline(task))
             processes.append(Popen(task))
+            sleep(2)
 
         for p in processes:
             if done(p):
@@ -284,17 +285,20 @@ def parse_args_ec_scrape():
     max_uniprot_hits = 50
     # Dict to hold arguements
     args =  {
-                '--src' : None,
-                '--dest' : None,
-                '--sheet': 0,
-                '--keywords' : None,
-                '--visible' : False,
-                '--load_job' : None,
-                '--email' : email, 
-                '--min_pct_idnt' : min_pct_idnt,
-                '--min_qry_cvr' : min_qry_cvr,
-                '--max_blast_hits' : max_blast_hits,
-                '--max_uniprot_hits' : max_uniprot_hits,
+                '--src'                     : None,
+                '--dest'                    : None,
+                '--sheet'                   : 0,
+                '--keywords'                : None,
+                '--visible'                 : False,
+                '--load_job'                : None,
+                '--email'                   : email, 
+                '--min_pct_idnt'            : min_pct_idnt,
+                '--min_qry_cvr'             : min_qry_cvr,
+                '--max_blast_hits'          : max_blast_hits,
+                '--max_uniprot_hits'        : max_uniprot_hits,
+                '--num_threads'             : 1,
+                '--from_downloaded_blast'   : False,
+                '--BLAST_rslts_path'        : None
             }
     received = set(())
     required    = set(('--src', '--email', '--dest'))
@@ -317,13 +321,17 @@ def parse_args_ec_scrape():
             elif arg in int_args:
                 args[arg] = int(val)
             elif arg == '--keywords':
-
                 args[arg] = val
             elif arg == '--visible':
                 visible = False
                 if args['--visible'] == 'True':
                     visible = True
                 args['--visible'] = visible
+            elif arg == '--from_downloaded_blast':
+                down = False
+                if args['--from_downloaded_blast'] == 'True':
+                    down = True
+                args['--from_downloaded_blast'] = down
             elif arg in args:
                 args[arg] = val
     # Check that the required arguments where passed in
