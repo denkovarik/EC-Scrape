@@ -50,7 +50,7 @@ class Annot_Reader():
         if args['--load_job'] is not None:
             self.load_job(args['--load_job'])
         else:
-            self.open(self.src, self.dest, self.sheet, self.args['--visible'])
+            self.open_job(self.src, self.dest, self.sheet, self.args['--visible'])
             kw = Annot_Reader.parse_keywords(args['--keywords'])
             self.compile_rows(kw)
           
@@ -273,7 +273,7 @@ class Annot_Reader():
                         self.args[params[0]] = params[1]
             i += 1
         # Open the excel file for editing
-        self.open(self.args['--src'], self.args['--dest'], \
+        self.open_job(self.args['--src'], self.args['--dest'], \
                   self.args['--sheet'], self.args['--visible'])
                 
         
@@ -301,7 +301,7 @@ class Annot_Reader():
         return True
               
                 
-    def open(self, src, dest, sheet, visible):
+    def open_job(self, src, dest, sheet, visible):
         """
         Opens an instance of the Annot_Reader class and initializes 
         instance variables.
