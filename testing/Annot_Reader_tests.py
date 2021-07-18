@@ -20,7 +20,6 @@ class Annot_Reader_tests(unittest.TestCase):
         
         :param self: An instance of the Annot_Reader_tests class.
         """
-        """
         email  = None
         min_pct_idnt  = 97.0
         min_qry_cvr = 95.0
@@ -46,7 +45,6 @@ class Annot_Reader_tests(unittest.TestCase):
         reader = Annot_Reader(args)
         reader.autosave_filename = 'test_autosave.txt'
         self.assertTrue(reader.rows == set((2,14)))
-        """
         
             
     def test_load_job(self):
@@ -88,7 +86,6 @@ class Annot_Reader_tests(unittest.TestCase):
         and create the necessary data structure for it.'
         
         :param self: An element of the Annot_Reader_tests class.
-        """
         """
         # Test Case 1
         keywords = 'hypothetical protein'
@@ -176,7 +173,6 @@ class Annot_Reader_tests(unittest.TestCase):
         exp = [{"Not": False, "Keyword" : "*"}]
         rslt = Annot_Reader.parse_keywords(keywords)
         self.assertTrue(rslt == exp)
-        """
         
         
     def test_save_job(self):
@@ -185,7 +181,6 @@ class Annot_Reader_tests(unittest.TestCase):
         its ability to save a job to file.
         
         :param self: An instance of the Annot_Reader_tests class.
-        """
         """
         orig = currentdir + '\\test_files\\' "test_genome_annotation.xlsx"
         cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xlsx"
@@ -278,7 +273,6 @@ class Annot_Reader_tests(unittest.TestCase):
                     i += 1
                 self.assertTrue(received == expected)
             i += 1
-        """
         
         
     def test_compile_rows(self):
@@ -287,7 +281,6 @@ class Annot_Reader_tests(unittest.TestCase):
         its ability to compile a list of rows to perform operations on.
         
         :param self: An instance of the Annot_Reader_tests class.
-        """
         """
         orig = currentdir + '\\test_files\\' "test_genome_annotation.xlsx"
         cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xlsx"
@@ -322,7 +315,6 @@ class Annot_Reader_tests(unittest.TestCase):
         keywords = [{"Not": False, "Keyword" : "hypothetical"}]
         reader.compile_rows(keywords)
         self.assertTrue(reader.rows == set((2, 14)))
-        """
     
     
     def test_matches_keywords(self):
@@ -332,7 +324,6 @@ class Annot_Reader_tests(unittest.TestCase):
         to it.
         
         :param self: An instance of the Annot_Reader_tests class.
-        """
         """
         # Test case 1
         keywords = [{"Not": False, "Keyword" : "hypothetical"}]
@@ -388,7 +379,6 @@ class Annot_Reader_tests(unittest.TestCase):
                     {"Not": False, "Keyword" : "hypothetical"}]
         self.assertFalse(Annot_Reader.matches_keywords(txt, keywords))
         self.assertFalse(Annot_Reader.matches_keywords(txt2, keywords))
-        """
         
     
     def test_is_ec(self):
@@ -397,7 +387,6 @@ class Annot_Reader_tests(unittest.TestCase):
         or not.
         
         :param self: An instance of the Annot_Reader_tests class.
-        """
         """
         test0 = ""
         test1 = "Hi there"
@@ -443,7 +432,6 @@ class Annot_Reader_tests(unittest.TestCase):
         self.assertFalse(Annot_Reader.is_ec(test19))
         self.assertFalse(Annot_Reader.is_ec(test20))
         self.assertTrue(Annot_Reader.is_ec(test21))
-        """
         
         
     def test_has_ec(self):
@@ -452,7 +440,6 @@ class Annot_Reader_tests(unittest.TestCase):
         associated ec number.
         
         :param self: An instance of the Annot_Reader_tests class.
-        """
         """
         test1 = "hypothetical protein"
         test2 = "DNA polymerase IV (EC 2.7.7.7)"
@@ -530,7 +517,6 @@ class Annot_Reader_tests(unittest.TestCase):
         self.assertTrue(reader.has_ec(reader.read(16, 'function')))
         self.assertTrue(reader.has_ec(reader.read(17, 'function')))
         self.assertTrue(reader.has_ec(reader.read(18, 'function')))
-        """
         
         
     def test_write(self):
@@ -539,7 +525,6 @@ class Annot_Reader_tests(unittest.TestCase):
         sheet.
         
         :param self: An instance of the Annot_Reader_tests class.
-        """
         """
         orig = currentdir + '\\test_files\\' + 'test_genome_annotation.xlsx'
         cpy = currentdir + '\\test_files\\' \
@@ -572,7 +557,6 @@ class Annot_Reader_tests(unittest.TestCase):
         reader.write(val, write_row, write_col)
         exp = "DNA polymerase IV (EC 2.7.7.7) Modified++"
         self.assertTrue(reader.read(write_row, write_col) == exp)
-        """
         
         
     def test_init(self):
@@ -580,7 +564,6 @@ class Annot_Reader_tests(unittest.TestCase):
         Tests the initialization of the Annot_Reader object.
         
         :param self: An instance of the Annot_Reader_tests class.
-        """
         """
         orig = currentdir + '\\test_files\\' "test_genome_annotation.xlsx"
         cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xlsx"
@@ -623,7 +606,6 @@ class Annot_Reader_tests(unittest.TestCase):
         reader = Annot_Reader(args)
         reader.autosave_filename = 'test_autosave.txt'
         self.assertTrue(reader.dest == orig)
-        """
         
         
     def test_read_cell(self):
@@ -631,7 +613,6 @@ class Annot_Reader_tests(unittest.TestCase):
         Tests Annot_Reader on reading a cell from the excel sheet
         
         :param self: An instance of the Annot_Reader_tests class.
-        """
         """
         orig = currentdir + '\\test_files\\' "test_genome_annotation.xlsx"
         cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xlsx"
@@ -664,7 +645,6 @@ class Annot_Reader_tests(unittest.TestCase):
         reader.autosave_filename = 'test_autosave.txt'
         exp = "DNA polymerase IV (EC 2.7.7.7)"
         self.assertTrue(reader.read(3, 'function') == exp)
-        """
         
         
     def test_cols(self):
@@ -674,7 +654,6 @@ class Annot_Reader_tests(unittest.TestCase):
         
         :param self: An instance of the Annot_Reader_tests class.
         """
-        """
         self.assertTrue(Annot_Reader.col_labels[1] == "A")
         self.assertTrue(Annot_Reader.col_labels[26] == "Z")
         self.assertTrue(Annot_Reader.col_labels[27] == "AA")
@@ -683,7 +662,6 @@ class Annot_Reader_tests(unittest.TestCase):
         self.assertTrue(Annot_Reader.col_labels["Z"] == 26)
         self.assertTrue(Annot_Reader.col_labels["AA"] == 27)
         self.assertTrue(Annot_Reader.col_labels["AB"] == 28)
-        """
         
         
     def test_execution(self):
