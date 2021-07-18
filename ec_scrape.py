@@ -22,5 +22,9 @@ args = parse_args_ec_scrape()
 
 # Read the excel sheet
 reader = Annot_Reader(args)
-
-online_blast_ec_scrape(reader, args)
+print(args['--from_downloaded_blast'])
+if '--from_downloaded_blast' in args.keys() \
+and args['--from_downloaded_blast'] == True:
+    dl_blast_ec_scrape(reader, args)
+else:
+    online_blast_ec_scrape(reader, args)

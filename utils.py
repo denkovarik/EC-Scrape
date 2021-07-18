@@ -2,12 +2,36 @@ import xml.etree.cElementTree as et
 from classes.NCBI import NCBI
 from classes.Uniprot import *
 from classes.Annot_Reader import *
+from classes.BLAST_Rslts_Itr import BLAST_Rslts_Itr
 from time import sleep
 from progress.bar import IncrementalBar
 import random
 import sys, os, time
 from subprocess import Popen, list2cmdline
 
+
+def build_cmd(seq, out_file, query_id, args):
+    """
+    Builds a command to run blast.py on the command line.
+    
+    :param seq: A fasta sequence to BLAST
+    :param out_file: The name of the file to store the results in
+    :param query_id: The id of the query
+    :param args: A dictionary of arguments need for the BLAST and EC search 
+                 from online databases.
+    :return: The command to run blast.py on the command line.
+    """
+    cmd = ["py", "blast.py", \
+            "--fasta_sequence", seq, \
+            "--email", args["--email"], \
+            "--out_file", out_file, \
+            "--id", str(query_id), \
+            "--min_pct_idnt", str(args["--min_pct_idnt"]), \
+            "--min_qry_cvr", str(args["--min_qry_cvr"]), \
+            "--max_blast_hits", str(args["--max_blast_hits"]), \
+            "--max_uniprot_hits", str(args["--max_uniprot_hits"])]
+    return cmd
+    
 
 def cpu_count():
     ''' Returns the number of CPUs in the system
@@ -30,6 +54,94 @@ def cpu_count():
             pass
 
     return num
+    
+    
+def check_dl_blast_args(args):
+    """
+    Checks for the necessary command line arguements for using downloaded blast results for searching for the EC numbers for proteins.
+    
+    :param args: A python dictionary of command line arguments.
+    """
+    # Make sure flag is set to use downloaded blast results
+    if not '--from_downloaded_blast' in args.keys():
+        raise Exception("Flag not set to use downloaded BLAST results")
+    elif args['--from_downloaded_blast'] is None:
+        raise Exception("Flag '--from_downloaded_blast' set to None")
+    elif not args['--from_downloaded_blast']:
+        raise Exception("Flag '--from_downloaded_blast' set to False")
+    # Check the path to dir containing downloaded blast results
+    if not '--BLAST_rslts_path' in args.keys():
+        raise Exception("'--BLAST_rslts_path' Flag not set")
+    elif args['--BLAST_rslts_path'] is None:
+        raise Exception("'--BLAST_rslts_path' Flag set to None")
+    elif type(args['--BLAST_rslts_path']) != type("str"):
+        raise Exception("'--BLAST_rslts_path' is invalid type")
+    elif not os.path.isdir(args['--BLAST_rslts_path']):
+        msg = "'--BLAST_rslts_path' " + args['--BLAST_rslts_path'] \
+            + " does not exist."
+        raise Exception(msg)
+    
+    
+def dl_blast_ec_scrape(reader, args):
+    """
+    Parses downloaded blast results for protein accession numbers, then uses 
+    those accession numbers to search online databases for EC numbers.
+    
+    :param reader: An instance of the Annot_Reader class to read and write 
+                   to an excel file of a genome annotation.
+    :param args: A python dictionary of command line arguements
+    """
+    # Check for necessary command line arguments
+    check_dl_blast_args(args)
+    # Build a dictionary mapping proteins by contig location
+    loc2row = {}
+    for ind in reader.df.index:
+        loc = reader.df['location'][ind]
+        loc2row[loc] = ind
+    # Parse results in --BLAST_rslts_path
+    num_rslts = len(os.listdir(args['--BLAST_rslts_path']))
+    bar = IncrementalBar('| Processing Downloaded BLAST Results...', max = num_rslts)
+    for file in os.listdir(args['--BLAST_rslts_path']):
+        filepath = args['--BLAST_rslts_path'] + file
+        loc = file.split(".")[0]
+        entry = reader.read(loc2row[loc], 'function')
+        if not Annot_Reader.has_ec(entry):
+            output = prcs_blast_rslts_html(filepath, reader, args)
+            if output.strip() != "":
+                output = entry + output
+                # Write the results
+                reader.write(output, loc2row[loc], 'function')
+        bar.next()
+           
+    
+def ec_scrape(acc, email, max_uniprot_hits):
+    """
+    Scrapes the web for the ec number for the protein with the given 
+    accession number.
+    
+    :param acc: The accession number to scrape the web for.
+    :param email: The users email
+    :param max_uniprot_hits: The max number of hits on Uniprot to use.
+    :return: The results as a string
+    """
+    # Query NCBI database for EC number through the entrez database
+    ncbi = NCBI()
+    rslt = ncbi.protein.search(acc, email)
+    uniprot = Uniprot()
+    rslt_found = ""
+    # If EC number not found from above, the query Uniprot Database for it
+    if not 'EC Number' in rslt.keys():
+        srch = [("Protein name",rslt['Protein name']), \
+                ("Organism",rslt['Organism'])]
+        uniprot.search(srch)
+        itr = iter(uniprot)
+        for i in itr:
+            if Annot_Reader.has_ec(i['protein names']):
+                proteins = tag_ec(i['protein names'])
+                rslt_found += '(EC-Scraped (' + proteins + ' [' + i['organism'] + '] ' + 'UniProtKB: ' + i['id'] + ')) '
+    else:
+        rslt_found = "(EC-Scraped (" + rslt['Protein name'] + " [" + rslt['Organism'] + '] ' + "(NCBI Protein Accession: " + acc + ") " + '(EC-Scraped EC ' + rslt['EC Number'] + ')))'
+    return rslt_found
 
 
 def exec_commands(cmds, max_task):
@@ -65,59 +177,6 @@ def exec_commands(cmds, max_task):
             break
         else:
             time.sleep(5)
-
-
-def build_cmd(seq, out_file, query_id, args):
-    """
-    Builds a command to run blast.py on the command line.
-    
-    :param seq: A fasta sequence to BLAST
-    :param out_file: The name of the file to store the results in
-    :param query_id: The id of the query
-    :param args: A dictionary of arguments need for the BLAST and EC search 
-                 from online databases.
-    :return: The command to run blast.py on the command line.
-    """
-    cmd = ["py", "blast.py", \
-            "--fasta_sequence", seq, \
-            "--email", args["--email"], \
-            "--out_file", out_file, \
-            "--id", str(query_id), \
-            "--min_pct_idnt", str(args["--min_pct_idnt"]), \
-            "--min_qry_cvr", str(args["--min_qry_cvr"]), \
-            "--max_blast_hits", str(args["--max_blast_hits"]), \
-            "--max_uniprot_hits", str(args["--max_uniprot_hits"])]
-    return cmd
-       
-    
-def ec_scrape(acc, email, max_uniprot_hits):
-    """
-    Scrapes the web for the ec number for the protein with the given 
-    accession number.
-    
-    :param acc: The accession number to scrape the web for.
-    :param email: The users email
-    :param max_uniprot_hits: The max number of hits on Uniprot to use.
-    :return: The results as a string
-    """
-    # Query NCBI database for EC number through the entrez database
-    ncbi = NCBI()
-    rslt = ncbi.protein.search(acc, email)
-    uniprot = Uniprot()
-    rslt_found = ""
-    # If EC number not found from above, the query Uniprot Database for it
-    if not 'EC Number' in rslt.keys():
-        srch = [("Protein name",rslt['Protein name']), \
-                ("Organism",rslt['Organism'])]
-        uniprot.search(srch)
-        itr = iter(uniprot)
-        for i in itr:
-            if Annot_Reader.has_ec(i['protein names']):
-                proteins = tag_ec(i['protein names'])
-                rslt_found += '(EC-Scraped (' + proteins + ' [' + i['organism'] + '] ' + 'UniProtKB: ' + i['id'] + ')) '
-    else:
-        rslt_found = "(EC-Scraped (" + rslt['Protein name'] + " [" + rslt['Organism'] + '] ' + "(NCBI Protein Accession: " + acc + ") " + '(EC-Scraped EC ' + rslt['EC Number'] + ')))'
-    return rslt_found
     
     
 def extract_ec(txt):
@@ -237,7 +296,6 @@ def online_blast_ec_scrape(reader, args):
         os.remove(path)
 
     if args['--from_downloaded_blast']:
-        print("here")
         exit()
 
     while len(reader.rows) > 0:
@@ -350,7 +408,7 @@ def parse_args_ec_scrape():
     email  = None
     min_pct_idnt  = 97.0
     min_qry_cvr = 95.0
-    max_blast_hits = 10
+    max_blast_hits = 5
     max_uniprot_hits = 50
     # Dict to hold arguements
     args =  {
@@ -358,6 +416,7 @@ def parse_args_ec_scrape():
                 '--dest'                    : None,
                 '--sheet'                   : 0,
                 '--keywords'                : None,
+                '--program'                 : 'blastx',
                 '--visible'                 : False,
                 '--load_job'                : None,
                 '--email'                   : email, 
@@ -399,7 +458,7 @@ def parse_args_ec_scrape():
                 args['--visible'] = visible
             elif arg == '--from_downloaded_blast':
                 down = False
-                if args['--from_downloaded_blast'] == 'True':
+                if val == 'True':
                     down = True
                 args['--from_downloaded_blast'] = down
             elif arg in args:
@@ -466,6 +525,34 @@ def prcs_blast_rslts(blast_xml, seq_len, email, min_pct_idnt=97.0, \
         if num_blast_hits_used >= max_blast_hits:
             break
     return output
+    
+    
+def prcs_blast_rslts_html(filepath, reader, args):
+    """
+    Processes the blast results from a html file and scrapes online databases 
+    for ec numbers.
+    
+    :param filepath: Filepath to the blast rslts .html file.
+    :param reader: An instance of the Annot_Reader class
+    :param args: A python dictionary of command line arguments
+    :return: The results of the search
+    """
+    if not os.path.isfile(filepath):
+        return ""
+    f = open(filepath)
+    content = f.read()
+    f.close()
+    c = 0
+    output = ""
+    for hit in BLAST_Rslts_Itr(content):                   
+        if hit['per ident'] >= args['--min_pct_idnt'] \
+        and hit['query cover'] >= args['--min_qry_cvr']:
+            acc = hit['accession']
+            output += ec_scrape(acc, args['--email'], args['--max_uniprot_hits']) + " "
+            c += 1
+            if c >= args['--max_blast_hits']:
+                break
+    return output.strip()
     
     
 def tag_ec(txt):
