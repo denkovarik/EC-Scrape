@@ -327,6 +327,7 @@ class Annot_Reader():
         self.book = xw.Book(dest)
         self.wks = xw.sheets
         self.ws = self.wks[sheet]
+        found = False
         for r in range(self.df.shape[0]):
             for c in range(self.df.shape[1]):
                 cell = str(Annot_Reader.col_labels[c+1]) + str(r+1)
@@ -335,9 +336,13 @@ class Annot_Reader():
                 if val == "function":
                     self.cols['function'] = Annot_Reader.col_labels[c + 1]
                     self.header["start row"] = r + 1
+                    found = True
                 if val == "nucleotide_sequence":
                     self.cols['nucleotide_sequence'] \
                         = Annot_Reader.col_labels[c + 1]
+                    found = True
+            if found:
+                break
         # Adjust rows to blast according to the header in the excel file
         for i in range(len(self.rows)):
             self.rows[i] = self.rows[i] - self.header["start row"] - 1
