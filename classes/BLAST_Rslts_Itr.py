@@ -12,8 +12,16 @@ class BLAST_Rslts_Itr():
         :param self: An instance of the BLAST_Rslts_Itr class
         :param content: The content from the html file of the BLAST Results
         """
+        # The features from the results row
+        self.features = {}
         # The content of the results .html file returned
-        self.row = content
+        self.content = content
+        # Find out which BLAST program was used
+        s = self.content.find('<meta name="ncbi_program" content="')
+        s = self.content.find('content="', s)
+        s = self.content.find('"', s) + 1
+        e = self.content.find('"', s)
+        self.program = self.content[s:e]
         # The current results as a dictionary
         self.cur = None
         # The current start and end positions within the html file
@@ -22,8 +30,6 @@ class BLAST_Rslts_Itr():
         self.cur_row = ''
         # Boolean to indicate if at end of results
         self.end = False
-        # The features from the results row
-        self.features = {}
         self.began = False
                     
             
@@ -50,17 +56,17 @@ class BLAST_Rslts_Itr():
             # Set the iterator to the first results
             self.begin()
         if not self.end:
-            self.start_pos = self.row.find('<tr id=', self.end_pos)
+            self.start_pos = self.content.find('<tr id=', self.end_pos)
             if self.start_pos == -1:
                 self.end_itr()
                 # Stop the iteration
                 raise StopIteration
-            self.end_pos = self.row.find('</tr>', self.start_pos) + 5
+            self.end_pos = self.content.find('</tr>', self.start_pos) + 5
             if self.end_pos == -1:
                 self.end_itr()
                 # Stop the iteration
                 raise StopIteration
-            self.cur_row = self.row[self.start_pos:self.end_pos]
+            self.cur_row = self.content[self.start_pos:self.end_pos]
             # Extract the features
             self.extract_features(self.cur_row)
             return self.features
@@ -89,7 +95,7 @@ class BLAST_Rslts_Itr():
         self.features = {}
         s = 0
         # Find the starting point of the results table
-        s = self.row.find('<tbody>', s)
+        s = self.content.find('<tbody>', s)
         if s == -1:
             self.end_itr()
             return
@@ -115,9 +121,11 @@ class BLAST_Rslts_Itr():
         :param self: An instance of the BLAST_Rslts_Itr class.
         :param row: A row from the results table in the html file as a String
         """
-        self.features['accession'] = self.get_accession(row)
-        self.features['query cover'] = self.get_query_cover(row)
-        self.features['per ident'] = self.get_per_ident(row)
+        self.features['Program'] = self.program
+        self.features['Accession'] = self.get_accession(row)
+        self.features['Query Cover'] = self.get_query_cover(row)
+        self.features['Per. Ident'] = self.get_per_ident(row)
+        self.features['E value'] = self.get_e_value(row)
             
             
     def get_accession(self, row):
@@ -135,6 +143,23 @@ class BLAST_Rslts_Itr():
         e = row.find('"', s)
         accession = row[s:e]
         return accession.strip()
+        
+        
+    def get_e_value(self, row):
+        """
+        Returns the e value found in the parameter 'row'.
+            
+        :param self: An instance of the BLAST_Rslts_Itr class.
+        :param row: A row from the results table in the html file as a String
+        :return: 
+        """
+        s = row.find('<td class="c9">')
+        if s == -1:
+            return None
+        s = row.find('>', s) + 1
+        e = row.find('<', s)
+        query_cover = row[s:e]
+        return float(query_cover.strip())
         
         
     def get_per_ident(self, row):
