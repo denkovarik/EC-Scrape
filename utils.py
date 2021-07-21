@@ -58,7 +58,8 @@ def cpu_count():
     
 def check_dl_blast_args(args):
     """
-    Checks for the necessary command line arguements for using downloaded blast results for searching for the EC numbers for proteins.
+    Checks for the necessary command line arguements for using downloaded blast 
+    results for searching for the EC numbers for proteins.
     
     :param args: A python dictionary of command line arguments.
     """
@@ -102,33 +103,36 @@ def dl_blast_ec_scrape(reader, args):
     num_rslts = len(os.listdir(args['--BLAST_rslts_path']))
     bar = IncrementalBar('| Processing Downloaded BLAST Results...', max = num_rslts)
     for file in os.listdir(args['--BLAST_rslts_path']):
-        filepath = args['--BLAST_rslts_path'] + file
-        loc = file.split(".")[0]
-        entry = reader.read(loc2row[loc], 'function')
-        if not Annot_Reader.has_ec(entry):
-            output = prcs_blast_rslts_html(filepath, reader, args)
-            if output.strip() != "":
-                output = entry + output
-                # Write the results
-                reader.write(output, loc2row[loc], 'function')
+        if os.path.isfile(file):
+            filepath = args['--BLAST_rslts_path'] + file
+            loc = file.split(".")[0]
+            entry = reader.read(loc2row[loc], 'function')
+            if not Annot_Reader.has_ec(entry):
+                output = prcs_blast_rslts_html(filepath, reader, args)
+                if output.strip() != "":
+                    output = entry + output
+                    # Write the results
+                    reader.write(output, loc2row[loc], 'function')
         bar.next()
            
     
-def ec_scrape(acc, email, max_uniprot_hits):
+def ec_scrape(features, email, max_uniprot_hits):
     """
     Scrapes the web for the ec number for the protein with the given 
     accession number.
     
-    :param acc: The accession number to scrape the web for.
+    :param features: Dictionary of extracted features from the Blast results.
     :param email: The users email
     :param max_uniprot_hits: The max number of hits on Uniprot to use.
     :return: The results as a string
     """
     # Query NCBI database for EC number through the entrez database
     ncbi = NCBI()
-    rslt = ncbi.protein.search(acc, email)
+    rslt = ncbi.protein.search(features['Accession'], email)
+    if rslt is None:
+        return ""
     uniprot = Uniprot()
-    rslt_found = ""
+    rslt_found = '{EC-Scraped '
     # If EC number not found from above, the query Uniprot Database for it
     if not 'EC Number' in rslt.keys():
         srch = [("Protein name",rslt['Protein name']), \
@@ -138,9 +142,18 @@ def ec_scrape(acc, email, max_uniprot_hits):
         for i in itr:
             if Annot_Reader.has_ec(i['protein names']):
                 proteins = tag_ec(i['protein names'])
-                rslt_found += '(EC-Scraped (' + proteins + ' [' + i['organism'] + '] ' + 'UniProtKB: ' + i['id'] + ')) '
+                rslt_found += '(' + proteins + ' [' + i['organism'] + '] ' + 'UniProtKB: ' + i['id'] + ')'
     else:
-        rslt_found = "(EC-Scraped (" + rslt['Protein name'] + " [" + rslt['Organism'] + '] ' + "(NCBI Protein Accession: " + acc + ") " + '(EC-Scraped EC ' + rslt['EC Number'] + ')))'
+        rslt_found += "(" + rslt['Protein name'] + " [" + rslt['Organism'] + '] ' + "(NCBI Protein Accession: " + features['Accession'] + ") " + '(EC-Scraped EC ' + rslt['EC Number'] + '))'
+    # If no results found, return empty string
+    if rslt_found.strip() == '{EC-Scraped':
+        rslt_found = ''
+    else:
+        rslt_found += ' Program: ' + features['Program'] + ', ' 
+        rslt_found += 'Query Cover: ' + str(features['Query Cover']) + ', ' 
+        rslt_found += 'E value: ' + str(features['E value']) + ', ' 
+        rslt_found += 'Per. Ident: ' + str(features['Per. Ident'])
+        rslt_found += '} '
     return rslt_found
 
 
@@ -341,12 +354,20 @@ def parse_blast_xml(xml, seq_len = None):
     :param xml: The xml output as a string
     :return: The blast data as a list of dictionaries
     """
+    blast_program = ""
     out = []
     # Parse xml from a string
     root = et.fromstring(xml)
+    for node in root:
+        if node.tag == 'BlastOutput_program':
+            blast_program = node.text
+        elif node.tag == 'BlastOutput_query-len':
+            seq_len = int(node.text)
     itr = './BlastOutput_iterations/Iteration/Iteration_hits/'
     for hit in root.findall(itr):
-        features = {}
+        features =  {
+                        "Program"   : blast_program
+                    }
         for f in hit:
             if f.tag == 'Hit_num':
                 features[f.tag] = int(f.text)
@@ -354,6 +375,8 @@ def parse_blast_xml(xml, seq_len = None):
                 features[f.tag] = int(f.text)
             elif f.tag == 'Hit_hsps':
                 pass
+            elif f.tag == 'Hit_accession':
+                features['Accession'] = f.text
             else:
                 features[f.tag] = f.text
             for Hit_hsps in f:
@@ -365,7 +388,7 @@ def parse_blast_xml(xml, seq_len = None):
                     elif Hsp.tag == 'Hsp_score':
                         features[str(Hsp.tag)] = int(Hsp.text)
                     elif Hsp.tag == 'Hsp_evalue':
-                        features[str(Hsp.tag)] = float(Hsp.text)
+                        features['E value'] = float(Hsp.text)
                     elif Hsp.tag == 'Hsp_query-from':
                         features[str(Hsp.tag)] = int(Hsp.text)
                     elif Hsp.tag == 'Hsp_query-to':
@@ -389,10 +412,9 @@ def parse_blast_xml(xml, seq_len = None):
                     else:
                         features[str(Hsp.tag)] = Hsp.text
         # Calculate the percent identity
-        features['Per Ident'] = float(features['Hsp_identity']) / features['Hsp_align-len'] * 100
+        features['Per. Ident'] = float(features['Hsp_identity']) / features['Hsp_align-len'] * 100
         # Calculate the Query Cover
-        if seq_len is not None:
-            features['Query Cover'] = float(features['Hsp_query-to'] - features['Hsp_query-from'] + 1) / seq_len * 100
+        features['Query Cover'] = float(features['Hsp_query-to'] - features['Hsp_query-from'] + 1) / seq_len * 100
         out += [features]
     return out
     
@@ -497,35 +519,29 @@ def print_usage_ec_scrape():
     print("  Required params:\n\t--src\n\t--dest\n\t--email")
     
     
-def prcs_blast_rslts(blast_xml, seq_len, email, min_pct_idnt=97.0, \
-                     min_qry_cvr=90.0, max_blast_hits=10, \
-                     max_uniprot_hits=50):
+def prcs_blast_rslts(filepath, reader, args):
     """
-    Processes the blast results and scrapes online databases for ec numbers.
+    Processes the blast results from file and scrapes online databases 
+    for ec numbers.
     
-    :param blast_xml: String of the blast results
-    :param seq_len: The length of the sequence that was blasted
-    :param email: The user's email
-    :param min_pct_idnt: The minimum percent identity to accept for 
-                         blast results
-    :param min_qry_cvr: The minimum query cover to accept for blast results
-    :param max_blast_hits: The maximum number of blast hits to use
-    :param max_uniprot_hits: The max number of uniprot hits to use
+    :param filepath: Filepath to the blast rslts
+    :param reader: An instance of the Annot_Reader class
+    :param args: A python dictionary of command line arguments
     :return: The results of the search
     """
-    num_blast_hits_used = 0
-    output = ""
-    blast_data = parse_blast_xml(blast_xml, seq_len=seq_len)
-    for hit in blast_data:
-        if hit['Per Ident'] >= min_pct_idnt \
-        and hit['Query Cover'] >= min_qry_cvr:
-            acc = hit['Hit_accession']
-            output += ec_scrape(acc, email, max_uniprot_hits) + " "
-            num_blast_hits_used += 1
-        if num_blast_hits_used >= max_blast_hits:
-            break
-    return output
+    # Determine if file is .xml or .htm or .html file.
+    the_filepath = filepath.split('.')
+    if the_filepath[-1] == 'xml':
+        return prcs_blast_rslts_xml(filepath, reader, args)
+    elif the_filepath[-1] == 'htm':
+        return prcs_blast_rslts_html(filepath, reader, args)
+    elif the_filepath[-1] == 'html':
+        return prcs_blast_rslts_html(filepath, reader, args)
+    else:
+        return ''
     
+    return output.strip() 
+ 
     
 def prcs_blast_rslts_html(filepath, reader, args):
     """
@@ -544,14 +560,41 @@ def prcs_blast_rslts_html(filepath, reader, args):
     f.close()
     c = 0
     output = ""
-    for hit in BLAST_Rslts_Itr(content):                   
-        if hit['per ident'] >= args['--min_pct_idnt'] \
-        and hit['query cover'] >= args['--min_qry_cvr']:
-            acc = hit['accession']
-            output += ec_scrape(acc, args['--email'], args['--max_uniprot_hits']) + " "
+    for hit in BLAST_Rslts_Itr(content):  
+        if hit['Per. Ident'] >= args['--min_pct_idnt'] \
+        and hit['Query Cover'] >= args['--min_qry_cvr']:
+            output += ec_scrape(hit, args['--email'], args['--max_uniprot_hits']) + " "
             c += 1
             if c >= args['--max_blast_hits']:
                 break
+    return output.strip()
+        
+    
+def prcs_blast_rslts_xml(filepath, reader, args):
+    """
+    Processes the blast results stored in an xml file and then scrapes online 
+    databases for ec numbers.
+    
+    :param filepath: The filepath of the blast results xml file.
+    :param reader: An instance of the Annot_Reader class
+    :param args: A python dictionary of command line arguments
+    :return: The results of the search
+    """
+    # Read the file
+    f = open(filepath, 'r')
+    blast_xml = f.read()
+    f.close()
+    num_blast_hits_used = 0
+    output = ""
+    blast_data = parse_blast_xml(blast_xml)
+    for hit in blast_data:
+        if hit['Per. Ident'] >= args['--min_pct_idnt'] \
+        and hit['Query Cover'] >= args['--min_qry_cvr']:
+            acc = hit['Accession']
+            output += ec_scrape(hit, args['--email'], args['--max_uniprot_hits']) + " "
+            num_blast_hits_used += 1
+        if num_blast_hits_used >= args['--max_blast_hits']:
+            break
     return output.strip()
     
     
