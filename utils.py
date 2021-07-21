@@ -103,8 +103,8 @@ def dl_blast_ec_scrape(reader, args):
     num_rslts = len(os.listdir(args['--BLAST_rslts_path']))
     bar = IncrementalBar('| Processing Downloaded BLAST Results...', max = num_rslts)
     for file in os.listdir(args['--BLAST_rslts_path']):
-        if os.path.isfile(file):
-            filepath = args['--BLAST_rslts_path'] + file
+        filepath = args['--BLAST_rslts_path'] + file
+        if os.path.isfile(filepath):
             loc = file.split(".")[0]
             entry = reader.read(loc2row[loc], 'function')
             if not Annot_Reader.has_ec(entry):
