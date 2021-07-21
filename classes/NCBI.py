@@ -157,7 +157,7 @@ class NCBI():
             records = Entrez.read(handle)
             identifiers = records['IdList']
             if len(identifiers) == 0:
-                raise Exception("No Results Found for " + accession)
+                return None
             handle = Entrez.efetch(db="protein", id=identifiers[0])
             text = handle.read()
             # Extract necessary info
