@@ -34,14 +34,8 @@ class NCBI_tests(unittest.TestCase):
         ncbi = NCBI()
         accession = "WP_NOT!!!"
         email = "dennis.kovarik@mines.sdsmt.edu"
-        err = False
-        try:
-            rslt = ncbi.protein.search(accession, email)
-            err = False
-        except:
-            err = True
-        finally:
-            self.assertTrue(err)
+        rslt = ncbi.protein.search(accession, email)
+        self.assertTrue(rslt == None)
         
         
     def test_extract_ec(self):
