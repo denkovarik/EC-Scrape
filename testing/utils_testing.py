@@ -48,7 +48,7 @@ class Utils_tests(unittest.TestCase):
         dl_blast_ec_scrape(reader, args)
         filepath = currentdir + "\\test_files\\blast_rslts\\contig_1_15267_15503.htm"
         self.assertTrue(os.path.isfile(filepath))
-        out = prcs_blast_rslts_html(filepath, reader, args)
+        out = prcs_blast_rslts_html(filepath, args)
 
     
     def test_dl_blast_ec_scrape(self):
@@ -214,6 +214,7 @@ class Utils_tests(unittest.TestCase):
         args =  {
                     '--src' : orig,
                     '--dest' : cpy,
+                    '--program' : "blastx",
                     '--sheet': 0,
                     '--keywords' : None,
                     '--visible' : False,
@@ -225,7 +226,7 @@ class Utils_tests(unittest.TestCase):
                     '--max_uniprot_hits' : max_uniprot_hits,
                 }
         cmd = build_cmd(seq, out_file, query_id, args)
-        exp = ["py", "blast.py", "--fasta_sequence", "AATTGGC", "--email", "dennis.kovarik@mines.sdsmt.edu", "--out_file", "0.txt", "--id", "0", "--min_pct_idnt", "97.0", "--min_qry_cvr", "95.0", "--max_blast_hits", "10", "--max_uniprot_hits", "50"]
+        exp = ["py", "blast.py", "--fasta_sequence", "AATTGGC", "--program", "blastx", "--email", "dennis.kovarik@mines.sdsmt.edu", "--out_file", "0.txt", "--id", "0", "--min_pct_idnt", "97.0", "--min_qry_cvr", "95.0", "--max_blast_hits", "10", "--max_uniprot_hits", "50"]
         self.assertTrue(cmd == exp)
         
         
@@ -258,8 +259,7 @@ class Utils_tests(unittest.TestCase):
                     '--max_uniprot_hits' : max_uniprot_hits,
                 }
         self.assertTrue(os.path.isfile(path))
-        reader = Annot_Reader(args)
-        rslt = prcs_blast_rslts(path, reader, args)
+        rslt = prcs_blast_rslts(path, args)
         
         
     def test_tag_ec(self):
