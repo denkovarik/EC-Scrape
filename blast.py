@@ -102,12 +102,7 @@ blast_xml = result_handle.read()
 result_handle.close()
 # Process the blast results
 seq_len = len(args['--fasta_sequence'])
-output = prcs_blast_rslts(blast_xml, seq_len, \
-                          args['--email'], \
-                          args['--min_pct_idnt'], \
-                          args['--min_qry_cvr'], \
-                          args['--max_blast_hits'], \
-                          args['--max_uniprot_hits'])
+output = prcs_blast_rslts(blast_xml, args)
 if args['--out_file'] is None:
     print(output)
 else:
