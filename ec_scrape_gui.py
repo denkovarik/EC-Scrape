@@ -31,9 +31,9 @@ def add_optional_cmd_args(values, tag):
     :return: A list of the added optional args
     """
     cmd_args = []
-    if values[tag] != "":
+    if values[tag].strip() != "":
         cmd_args += [tag]
-        cmd_args += [values[tag]]
+        cmd_args += [values[tag].strip()]
     return cmd_args
 
 
@@ -48,7 +48,7 @@ def add_required_cmd_args(values, tag, name):
     :param name: Item named used in popup window.
     :return: A list of the added required args
     """
-    if values[tag] == "":
+    if values[tag].strip() == "":
         msg = name + " is Required"
         layout = [[sg.Text(msg)]]
         window = sg.Window(msg, layout, modal=True)
@@ -59,7 +59,7 @@ def add_required_cmd_args(values, tag, name):
         # Exit  if error occured
         exit()
     cmd_args = [tag]
-    cmd_args += [values[tag]]
+    cmd_args += [values[tag].strip()]
     return cmd_args
 
 
@@ -74,7 +74,7 @@ def add_required_filepath_cmd_args(values, tag, name):
     :param name: Item named used in popup window.
     :return: A list of the added required args
     """
-    if values[tag] == "":
+    if values[tag].strip() == "":
         msg = name + " is Required"
         layout = [[sg.Text(msg)]]
         window = sg.Window(msg, layout, modal=True)
@@ -85,7 +85,7 @@ def add_required_filepath_cmd_args(values, tag, name):
         # Exit  if error occured
         exit()
     cmd_args = [tag]
-    cmd_args += [values[tag].replace("/","\\")]
+    cmd_args += [values[tag].replace("/","\\").strip()]
     return cmd_args
     
     
@@ -100,7 +100,7 @@ def add_required_folderpath_cmd_args(values, tag, name):
     :param name: Item named used in popup window.
     :return: A list of the added required args
     """
-    if values[tag] == "":
+    if values[tag].strip() == "":
         msg = name + " is Required"
         layout = [[sg.Text(msg)]]
         window = sg.Window(msg, layout, modal=True)
@@ -111,7 +111,7 @@ def add_required_folderpath_cmd_args(values, tag, name):
         # Exit  if error occured
         exit()
     cmd_args = [tag]
-    path = values[tag] + '/'
+    path = values[tag].strip() + '/'
     cmd_args += [path.replace("/","\\")]
     return cmd_args
 
@@ -124,7 +124,7 @@ def build_cmd_args_dwnl_BLAST(values, event):
     :param event: The events that happened in the GUI.
     :return: A list of command line arguements needed for the program.
     """
-    cmd_args = ['run_ec_scrape.py']
+    cmd_args = ['ec_scrape_gui.py']
     # Source file
     tag = '--src'
     name = 'Source RAST Genome Annotation '
@@ -179,6 +179,86 @@ def build_cmd_args_dwnl_BLAST(values, event):
     return cmd_args
     
     
+def build_cmd_args_online_BLAST(values, event):
+    """
+    Builds a list of command line arguements needed for the program
+    
+    :param values: The values entered into the GUI fields
+    :param event: The events that happened in the GUI.
+    :return: A list of command line arguements needed for the program.
+    """
+    cmd_args = ['ec_scrape_gui.py']
+    # Blast program to used
+    tag = '--program'
+    name = 'BLAST Program '
+    if values[tag].strip() == '':
+        layout = [[sg.Text(name + " is required")]]
+        window = sg.Window(name + " is required", layout, \
+                 modal=True)
+        while True:
+            event, values = window.read()
+            if event == "Exit" or event == sg.WIN_CLOSED:
+                break
+        exit()
+    elif values[tag].strip() != 'blastx' and values[tag].strip() != 'blastp':
+        layout = [[sg.Text("Invalid BLAST Program")]]
+        window = sg.Window("Invalid BLAST Program", layout, \
+                 modal=True)
+        while True:
+            event, values = window.read()
+            if event == "Exit" or event == sg.WIN_CLOSED:
+                break
+        exit()
+    cmd_args += [tag]
+    cmd_args += [values[tag].strip()]
+    # Source file
+    tag = '--src'
+    name = 'Source RAST Genome Annotation '
+    cmd_args += add_required_filepath_cmd_args(values, tag, name)
+    # Destination file
+    if values['--dest'] == '':
+        layout = [[sg.Text("Destination file is required")]]
+        window = sg.Window("Destination file is required", layout, \
+                 modal=True)
+        while True:
+            event, values = window.read()
+            if event == "Exit" or event == sg.WIN_CLOSED:
+                break
+        exit()
+    if values['--dest'].split('.')[-1] != 'xlsx':
+        layout = [[sg.Text("Destination file must be a .xlsx file")]]
+        window = sg.Window("Destination file must be a .xlsx file", layout, \
+                 modal=True)
+        while True:
+            event, values = window.read()
+            if event == "Exit" or event == sg.WIN_CLOSED:
+                break
+        exit()
+    dest = values['--dest']
+    cmd_args += ['--dest']
+    cmd_args += [dest.replace("/","\\")]
+    # Email
+    tag = '--email'
+    name = "Email "
+    cmd_args += add_required_cmd_args(values, tag, name)
+    # Optional keywords argument
+    tag = '--keywords'
+    cmd_args += add_optional_cmd_args(values, tag)
+    # Optional Min Query Cover Arg
+    tag = '--min_qry_cvr'
+    cmd_args += add_optional_cmd_args(values, tag)
+    # Optional Min Per. Ident
+    tag = '--min_pct_idnt'
+    cmd_args += add_optional_cmd_args(values, tag)
+    # Optional Max Blast Hits to Use Arg
+    tag = '--max_blast_hits'
+    cmd_args += add_optional_cmd_args(values, tag)
+    # Optional Max Uniprot Hits to Use Arg
+    tag = '--max_uniprot_hits'
+    cmd_args += add_optional_cmd_args(values, tag)
+    return cmd_args
+    
+    
 def build_ec_scrape_via_dwnl_blast_rslt_layout():
     """
     Builds the layout of the window for ec_scrape_via_dwnl_blast_rslt().
@@ -212,6 +292,75 @@ def build_ec_scrape_via_dwnl_blast_rslt_layout():
                     [sg.Button("Go", key="go_dwnl_ec")],                    
                 ]
     return layout
+    
+def build_ec_scrape_via_online_blast_rslt_layout():
+    """
+    Builds the layout of the window for ec_scrape_via_dwnl_blast_rslt().
+    
+    :return: The layout for the ec_scrape_via_dwnl_blast_rslt() window.
+    """
+    delim2 = '-----------------------------------------------------------------'
+    delim2 += '----------------------------------------------------------------'
+    delim2 += '-----------------------------'
+    delim = '================================================================='
+    delim += '=========================='
+    layout =    [
+                    [sg.Text("EC-Scrape via Online BLAST")],
+                    [sg.Text(delim)],
+                    [sg.Text("Required Parameters")],
+                    [sg.Text(delim2)],
+                    [sg.Text('Enter BLAST Program to Use'), \
+                            sg.InputText(key='--program')],
+                    [sg.Text('Select RAST Genome Annotation Source'), \
+                             sg.InputText(key='--src'), sg.FileBrowse()],
+                    [sg.Text('Filename for RAST Genome Annotation to Write')] \
+                             + [sg.Input(key='--dest')],
+                    [sg.Text('Enter Email')] + [sg.Input(key='--email')],
+                    [sg.Text("\nOptional Parameters")],
+                    [sg.Text(delim2)],
+                    [sg.Text('Keywords')] + [sg.Input(key='--keywords')],
+                    [sg.Text('Min Query Cover')] + [sg.Input(key='--min_qry_cvr')],
+                    [sg.Text('Min Per. Ident')] + [sg.Input(key='--min_pct_idnt')],
+                    [sg.Text('Max BLAST Hits')] + [sg.Input(key='--max_blast_hits')],
+                    [sg.Text('Max Uniprot Hits')] + [sg.Input(key='--max_uniprot_hits')],
+                    [sg.Button("Go", key="go_online_ec")],                    
+                ]
+    return layout  
+                    
+                    
+def create_new_job():
+    """
+    Creates a new job for EC-Scrape via online BLAST queries.
+    """
+    delim3 = '================================================================'
+    layout = build_ec_scrape_via_online_blast_rslt_layout()
+    window = sg.Window("EC-Scrape via Downloaded BLAST Results", layout, resizable=True, \
+             finalize=True, modal=True)
+    choice = None
+    while True:
+        event, values = window.read()
+        if event == "Exit" or event == sg.WIN_CLOSED:
+            break
+        if event == "go_online_ec":
+            window.close()
+            # Compile arguements for program
+            cmd_args = build_cmd_args_online_BLAST(values, event)
+            args = parse_args_ec_scrape(cmd_args)
+            # Annot_Reader class to read and write to genome annotation
+            reader = Annot_Reader(args)
+            online_blast_ec_scrape(reader, args)
+            layout =    [
+                            [sg.Text("EC-Scrape from Online BLAST Results has Completed")],
+                            [sg.Button("Quit", \
+                                key="quit")],
+                        ]
+            window = sg.Window("Complete", layout, modal=True)
+            while True:
+                event, values = window.read()
+                if event == "Exit" or event == sg.WIN_CLOSED:
+                    break
+                elif event == "quit":
+                    window.close()
 
 
 def ec_scrape_via_dwnl_blast_rslt():
@@ -288,6 +437,9 @@ def ec_scrape_via_online_blast():
         event, values = window.read()
         if event == "Exit" or event == sg.WIN_CLOSED:
             break
+        elif event == 'new':
+            window.close()
+            create_new_job()
         
     window.close()
     
