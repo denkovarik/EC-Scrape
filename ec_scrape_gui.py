@@ -117,6 +117,13 @@ def add_required_folderpath_cmd_args(values, tag, name):
 
 
 def build_cmd_args_dwnl_BLAST(values, event):
+    """
+    Builds a list of command line arguements needed for the program
+    
+    :param values: The values entered into the GUI fields
+    :param event: The events that happened in the GUI.
+    :return: A list of command line arguements needed for the program.
+    """
     cmd_args = ['run_ec_scrape.py']
     # Source file
     tag = '--src'
@@ -208,6 +215,10 @@ def build_ec_scrape_via_dwnl_blast_rslt_layout():
 
 
 def ec_scrape_via_dwnl_blast_rslt():
+    """
+    Scrapes online databases for EC numbers for proteins from downloaded BLAST 
+    results.
+    """
     delim3 = '================================================================'
     layout = build_ec_scrape_via_dwnl_blast_rslt_layout()
     window = sg.Window("EC-Scrape via Downloaded BLAST Results", layout, resizable=True, \
@@ -261,12 +272,14 @@ def ec_scrape_via_dwnl_blast_rslt():
 
 
 def ec_scrape_via_online_blast():
+    """
+    Scrapes online databases for EC numbers for proteins from BLAST query 
+    results submitted online.
+    """
     layout =    [
                     [sg.Text("EC-Scrape via Online BLAST", font=32)],
-                    [sg.Button("EC-Scrape via Online BLAST", \
-                                key="online blast ec scrape")],
-                    [sg.Button("EC-Scrape via Online BLAST", \
-                                key="online blast ec scrape")],
+                    [sg.Button("New Job", key="new")],
+                    [sg.Button("Load Job", key="new")],
                 ]
     window = sg.Window("EC-Scrape via Online BLAST", layout, \
              resizable=True, finalize=True, modal=True)
@@ -280,6 +293,9 @@ def ec_scrape_via_online_blast():
     
     
 def main():
+    """
+    This is the main window which is the start of the program.
+    """
     # Define the layout of the main window
     layout =    [
                     [sg.Text("EC-Scrape", \
@@ -308,5 +324,7 @@ def main():
             ec_scrape_via_dwnl_blast_rslt()
         
     window.close()
+    
+    
 if __name__ == "__main__":
     main()
