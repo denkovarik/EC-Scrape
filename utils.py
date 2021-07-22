@@ -166,9 +166,12 @@ def ec_scrape(features, email, max_uniprot_hits):
         for i in itr:
             if Annot_Reader.has_ec(i['protein names']):
                 proteins = tag_ec(i['protein names'])
-                rslt_found += '(' + proteins + ' [' + i['organism'] + '] ' + 'UniProtKB: ' + i['id'] + ')'
+                rslt_found += '(' + proteins + ' [' + i['organism'] + '] ' \
+                           + 'UniProtKB: ' + i['id'] + ')'
     else:
-        rslt_found += "(" + rslt['Protein name'] + " [" + rslt['Organism'] + '] ' + "(NCBI Protein Accession: " + features['Accession'] + ") " + '(EC-Scraped EC ' + rslt['EC Number'] + '))'
+        rslt_found += "(" + rslt['Protein name'] + " [" + rslt['Organism'] \
+                   + '] ' + "(NCBI Protein Accession: " + features['Accession'] \
+                   + ") " + '(EC-Scraped EC ' + rslt['EC Number'] + '))'
     # If no results found, return empty string
     if rslt_found.strip() == '{EC-Scraped':
         rslt_found = ''
@@ -479,7 +482,7 @@ def parse_args_ec_scrape(cmd_args):
                 '--BLAST_rslts_path'        : None
             }
     received = set(())
-    required    = set(('--src', '--email', '--dest', '--program'))
+    required    = set(('--src', '--email', '--dest'))
     float_args  = set(('--min_pct_idnt', '--min_qry_cvr'))
     int_args    = set(('--max_blast_hits', '--max_uniprot_hits', \
                        '--num_threads'))
