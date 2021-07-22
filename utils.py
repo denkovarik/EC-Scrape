@@ -23,6 +23,7 @@ def build_cmd(seq, out_file, query_id, args):
     """
     cmd = ["py", "blast.py", \
             "--fasta_sequence", seq, \
+            "--program" , args['--program'], \
             "--email", args["--email"], \
             "--out_file", out_file, \
             "--id", str(query_id), \
@@ -341,7 +342,10 @@ def online_blast_ec_scrape(reader, args):
         while count < num_rows and len(processing) < max_num_processes:
             row = next(itr)
             # Read the Sequences
-            seq = reader.read(row, 'nucleotide_sequence')
+            if args['--program'].strip() == 'blastx':
+                seq = reader.read(row, 'nucleotide_sequence')
+            elif args['--program'].strip() == 'blastp':
+                seq = reader.read(row, 'aa_sequence')
             out_file = tempdir + str(row) + ".txt"
             cmd += [build_cmd(seq, out_file, row, args)]
             processing.add(row)
@@ -475,7 +479,7 @@ def parse_args_ec_scrape(cmd_args):
                 '--BLAST_rslts_path'        : None
             }
     received = set(())
-    required    = set(('--src', '--email', '--dest'))
+    required    = set(('--src', '--email', '--dest', '--program'))
     float_args  = set(('--min_pct_idnt', '--min_qry_cvr'))
     int_args    = set(('--max_blast_hits', '--max_uniprot_hits', \
                        '--num_threads'))
@@ -508,6 +512,8 @@ def parse_args_ec_scrape(cmd_args):
                     down = True
                 args['--from_downloaded_blast'] = down
             elif arg in args:
+                args[arg] = val
+            else:
                 args[arg] = val
     # Check that the required arguments where passed in
     for r in required:
@@ -619,7 +625,7 @@ def print_usage_ec_scrape():
     print("              --max_uniprot_hits <the max number of UniProt hits to use>")
     print("              --sleep_time <amount of time to sleep before preforming the blast>")
     print("")
-    print("  Required params:\n\t--src\n\t--dest\n\t--email")
+    print("  Required params:\n\t--src\n\t--dest\n\t--email\n\t--program")
     
     
 def tag_ec(txt):
