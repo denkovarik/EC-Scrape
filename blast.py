@@ -34,6 +34,7 @@ def parse_args():
     # Dict to hold arguements
     args =  {
                 '--fasta_sequence' : fasta_sequence,
+                '--program' : 'bastx',
                 '--email' : email, 
                 '--out_file' : outFile,
                 '--min_pct_idnt' : min_pct_idnt,
