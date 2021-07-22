@@ -130,7 +130,7 @@ def dl_blast_prcs_hit(file, reader, args, loc2row):
         loc = file.split(".")[0]
         entry = reader.read(loc2row[loc], 'function')
         if not Annot_Reader.has_ec(entry):
-            output = prcs_blast_rslts_html(filepath, reader, args)
+            output = prcs_blast_rslts_html(filepath, args)
             if output.strip() != "":
                 output = entry + " " + output
                 # Write the results
@@ -356,6 +356,7 @@ def online_blast_ec_scrape(reader, args):
         if len(cmd) > 0:
             # Blast the sequence
             num_processing += len(processing)
+            # Execute jobs in parallel
             exec_commands(cmd, max_num_processes)       
         while len(os.listdir(tempdir)) > 0:
             filename = os.listdir(tempdir)[0]
@@ -533,37 +534,35 @@ def parse_args_ec_scrape(cmd_args):
     return args
     
     
-def prcs_blast_rslts(filepath, reader, args):
+def prcs_blast_rslts(filepath, args):
     """
     Processes the blast results from file and scrapes online databases 
     for ec numbers.
     
     :param filepath: Filepath to the blast rslts
-    :param reader: An instance of the Annot_Reader class
     :param args: A python dictionary of command line arguments
     :return: The results of the search
     """
     # Determine if file is .xml or .htm or .html file.
     the_filepath = filepath.split('.')
     if the_filepath[-1] == 'xml':
-        return prcs_blast_rslts_xml(filepath, reader, args)
+        return prcs_blast_rslts_xml(filepath, args)
     elif the_filepath[-1] == 'htm':
-        return prcs_blast_rslts_html(filepath, reader, args)
+        return prcs_blast_rslts_html(filepath, args)
     elif the_filepath[-1] == 'html':
-        return prcs_blast_rslts_html(filepath, reader, args)
+        return prcs_blast_rslts_html(filepath, args)
     else:
         return ''
     
     return output.strip() 
  
     
-def prcs_blast_rslts_html(filepath, reader, args):
+def prcs_blast_rslts_html(filepath, args):
     """
     Processes the blast results from a html file and scrapes online databases 
     for ec numbers.
     
     :param filepath: Filepath to the blast rslts .html file.
-    :param reader: An instance of the Annot_Reader class
     :param args: A python dictionary of command line arguments
     :return: The results of the search
     """
@@ -584,13 +583,12 @@ def prcs_blast_rslts_html(filepath, reader, args):
     return output.strip()
         
     
-def prcs_blast_rslts_xml(filepath, reader, args):
+def prcs_blast_rslts_xml(filepath, args):
     """
     Processes the blast results stored in an xml file and then scrapes online 
     databases for ec numbers.
     
     :param filepath: The filepath of the blast results xml file.
-    :param reader: An instance of the Annot_Reader class
     :param args: A python dictionary of command line arguments
     :return: The results of the search
     """
