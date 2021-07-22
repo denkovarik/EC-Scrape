@@ -91,7 +91,9 @@ def dl_blast_ec_scrape(reader, args):
     :param reader: An instance of the Annot_Reader class to read and write 
                    to an excel file of a genome annotation.
     :param args: A python dictionary of command line arguements
+    :return: In of the number of additional proteins EC Numbers were found for.
     """
+    ec_added = 0
     # Check for necessary command line arguments
     check_dl_blast_args(args)
     # Build a dictionary mapping proteins by contig location
@@ -103,17 +105,38 @@ def dl_blast_ec_scrape(reader, args):
     num_rslts = len(os.listdir(args['--BLAST_rslts_path']))
     bar = IncrementalBar('| Processing Downloaded BLAST Results...', max = num_rslts)
     for file in os.listdir(args['--BLAST_rslts_path']):
-        filepath = args['--BLAST_rslts_path'] + file
-        if os.path.isfile(filepath):
-            loc = file.split(".")[0]
-            entry = reader.read(loc2row[loc], 'function')
-            if not Annot_Reader.has_ec(entry):
-                output = prcs_blast_rslts_html(filepath, reader, args)
-                if output.strip() != "":
-                    output = entry + output
-                    # Write the results
-                    reader.write(output, loc2row[loc], 'function')
+        if dl_blast_prcs_hit(file, reader, args, loc2row):
+            ec_added += 1
         bar.next()
+    return ec_added
+        
+        
+def dl_blast_prcs_hit(file, reader, args, loc2row):
+    """
+    Parses a single downloaded blast result for protein accession numbers, 
+    then uses those accession numbers to search online databases for EC 
+    numbers.
+    
+    :param loc2row: Python dictionary mapping proteins by contig location
+    :param file: Filename of the file to process.
+    :param reader: An instance of the Annot_Reader class to read and write 
+                   to an excel file of a genome annotation.
+    :param args: A python dictionary of command line arguements
+    :return: Boolean indicating if EC Number was added from hit
+    """
+    filepath = args['--BLAST_rslts_path'] + file
+    if os.path.isfile(filepath):
+        loc = file.split(".")[0]
+        entry = reader.read(loc2row[loc], 'function')
+        if not Annot_Reader.has_ec(entry):
+            output = prcs_blast_rslts_html(filepath, reader, args)
+            if output.strip() != "":
+                output = entry + " " + output
+                # Write the results
+                reader.write(output, loc2row[loc], 'function')
+                sleep(1)
+                return True
+    return False
            
     
 def ec_scrape(features, email, max_uniprot_hits):
@@ -132,7 +155,7 @@ def ec_scrape(features, email, max_uniprot_hits):
     if rslt is None:
         return ""
     uniprot = Uniprot()
-    rslt_found = '{EC-Scraped '
+    rslt_found = ' {EC-Scraped '
     # If EC number not found from above, the query Uniprot Database for it
     if not 'EC Number' in rslt.keys():
         srch = [("Protein name",rslt['Protein name']), \
@@ -152,9 +175,10 @@ def ec_scrape(features, email, max_uniprot_hits):
         rslt_found += ' Program: ' + features['Program'] + ', ' 
         rslt_found += 'Query Cover: ' + str(features['Query Cover']) + ', ' 
         rslt_found += 'E value: ' + str(features['E value']) + ', ' 
-        rslt_found += 'Per. Ident: ' + str(features['Per. Ident'])
-        rslt_found += '} '
-    return rslt_found
+        rslt_found += 'Per. Ident: ' + str(features['Per. Ident']) + ', ' 
+        rslt_found += 'Accession: ' + str(features['Accession'])
+        rslt_found += '}'
+    return rslt_found.strip()
 
 
 def exec_commands(cmds, max_task):
@@ -420,7 +444,7 @@ def parse_blast_xml(xml, seq_len = None):
     
    
 
-def parse_args_ec_scrape():
+def parse_args_ec_scrape(cmd_args):
     """
     Parses the arguments to the program.
     
@@ -438,7 +462,7 @@ def parse_args_ec_scrape():
                 '--dest'                    : None,
                 '--sheet'                   : 0,
                 '--keywords'                : None,
-                '--program'                 : 'blastx',
+                '--program'                 : None,
                 '--visible'                 : False,
                 '--load_job'                : None,
                 '--email'                   : email, 
@@ -456,15 +480,15 @@ def parse_args_ec_scrape():
     int_args    = set(('--max_blast_hits', '--max_uniprot_hits', \
                        '--num_threads'))
 
-    if len(sys.argv) % 2 != 1:
+    if len(cmd_args) % 2 != 1:
         print("Invalid command line arguements")
         print_usage_ec_scrape()
         exit()
     
     # Parse the arguements
-    for i in range(1, len(sys.argv), +2):
-        arg = sys.argv[i]
-        val = sys.argv[i+1]
+    for i in range(1, len(cmd_args), +2):
+        arg = cmd_args[i]
+        val = cmd_args[i+1]
         if arg in args:
             received.add(arg)
             if arg in float_args:
@@ -498,25 +522,6 @@ def parse_args_ec_scrape():
         print(args['--src'] + " does not exist")
         print_usage_ec_scrape()()
     return args
-    
-    
-def print_usage_ec_scrape():
-    """
-    Prints the usage statement
-    """
-    print("Usage:")
-    print("  py blast.py --src <the filename and path of source genome annotation excel file to annotate>")
-    print("              --dest <the file name and path of the genome annotation to write to>")
-    print("              --email <the user's email>")
-    print("              --keywords <The keywords for the proteins to perform the BLAST on (keywords must be surronded by quotes)>")
-    print("              --load_job <Boolean to indicate whether to load a previos job [True | False]>")
-    print("              --min_pct_idnt <the min % identity to use for blast hit>")
-    print("              --min_qry_cvr <the min query cover to use for blast hit>") 
-    print("              --max_blast_hits <the max number of blast hits to use>") 
-    print("              --max_uniprot_hits <the max number of UniProt hits to use>")
-    print("              --sleep_time <amount of time to sleep before preforming the blast>")
-    print("")
-    print("  Required params:\n\t--src\n\t--dest\n\t--email")
     
     
 def prcs_blast_rslts(filepath, reader, args):
@@ -596,6 +601,25 @@ def prcs_blast_rslts_xml(filepath, reader, args):
         if num_blast_hits_used >= args['--max_blast_hits']:
             break
     return output.strip()
+        
+    
+def print_usage_ec_scrape():
+    """
+    Prints the usage statement
+    """
+    print("Usage:")
+    print("  py blast.py --src <the filename and path of source genome annotation excel file to annotate>")
+    print("              --dest <the file name and path of the genome annotation to write to>")
+    print("              --email <the user's email>")
+    print("              --keywords <The keywords for the proteins to perform the BLAST on (keywords must be surronded by quotes)>")
+    print("              --load_job <Boolean to indicate whether to load a previos job [True | False]>")
+    print("              --min_pct_idnt <the min % identity to use for blast hit>")
+    print("              --min_qry_cvr <the min query cover to use for blast hit>") 
+    print("              --max_blast_hits <the max number of blast hits to use>") 
+    print("              --max_uniprot_hits <the max number of UniProt hits to use>")
+    print("              --sleep_time <amount of time to sleep before preforming the blast>")
+    print("")
+    print("  Required params:\n\t--src\n\t--dest\n\t--email")
     
     
 def tag_ec(txt):
