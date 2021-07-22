@@ -44,7 +44,7 @@ def parse_args():
                 '--id' : '0',
             }
     received = set(())
-    required    = set(('--fasta_sequence', '--email'))
+    required    = set(('--fasta_sequence', '--email', '--program'))
     float_args  = set(('--sleep_time', '--min_pct_idnt', '--min_qry_cvr'))
     int_args    = set(('--max_blast_hits', '--max_uniprot_hits'))
     if len(sys.argv) % 2 != 1:
@@ -94,7 +94,7 @@ if args['--sleep_time'] is not None:
     sleep(args['--sleep_time'])
 
 # Perform the BLAST query
-result_handle = NCBIWWW.qblast(program="blastx", 
+result_handle = NCBIWWW.qblast(program=args['--program'], 
                                       database="nr", 
                                       sequence=args['--fasta_sequence'])
 blast_xml = result_handle.read()
