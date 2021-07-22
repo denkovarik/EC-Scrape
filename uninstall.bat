@@ -12,3 +12,5 @@ call py -m pip uninstall openpyxl
 call py -m pip uninstall PySimpleGUI
 :: Uninstall Progress Bar
 call py -m pip uninstall progress progressbar2 alive-progress tqdm
+:: Uninstall PySimpleGUI
+call py -m pip uninstall pysimplegui

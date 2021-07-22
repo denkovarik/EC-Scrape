@@ -14,3 +14,5 @@ call py -m pip install openpyxl
 call py -m pip install PySimpleGUI
 :: Install Progress Bar
 call py -m pip install progress progressbar2 alive-progress tqdm
+:: Install PySimpleGUI
+call py -m pip install pysimplegui
