@@ -128,15 +128,16 @@ def dl_blast_prcs_hit(file, reader, args, loc2row):
     filepath = args['--BLAST_rslts_path'] + file
     if os.path.isfile(filepath):
         loc = file.split(".")[0]
-        entry = reader.read(loc2row[loc], 'function')
-        if not Annot_Reader.has_ec(entry):
-            output = prcs_blast_rslts_html(filepath, args)
-            if output.strip() != "":
-                output = entry + " " + output
-                # Write the results
-                reader.write(output, loc2row[loc], 'function')
-                sleep(1)
-                return True
+        if loc in loc2row:
+            entry = reader.read(loc2row[loc], 'function')
+            if not Annot_Reader.has_ec(entry):
+                output = prcs_blast_rslts_html(filepath, args)
+                if output.strip() != "":
+                    output = entry + " " + output
+                    # Write the results
+                    reader.write(output, loc2row[loc], 'function')
+                    sleep(1)
+                    return True
     return False
            
     
@@ -349,7 +350,7 @@ def online_blast_ec_scrape(reader, args):
                 seq = reader.read(row, 'nucleotide_sequence')
             elif args['--program'].strip() == 'blastp':
                 seq = reader.read(row, 'aa_sequence')
-            out_file = tempdir + str(row) + ".txt"
+            out_file = tempdir + str(row) + ".xml"
             cmd += [build_cmd(seq, out_file, row, args)]
             processing.add(row)
             count += 1
@@ -364,7 +365,7 @@ def online_blast_ec_scrape(reader, args):
             f = open(filepath, 'r')
             content = f.read()
             f.close()
-            os.remove(filepath)
+            #os.remove(filepath)
             completed_row = filename.split(".")[0]
             completed_row = completed_row.strip()
             completed_row = int(completed_row)
@@ -377,80 +378,6 @@ def online_blast_ec_scrape(reader, args):
         # Autosave
         reader.save_job(reader.autosave_filename)
     
-
-def parse_blast_xml(xml, seq_len = None):
-    """
-    Parses the xml from a blast and returns the results in a list of 
-    dictionaries.
-    
-    :param xml: The xml output as a string
-    :return: The blast data as a list of dictionaries
-    """
-    blast_program = ""
-    out = []
-    # Parse xml from a string
-    root = et.fromstring(xml)
-    for node in root:
-        if node.tag == 'BlastOutput_program':
-            blast_program = node.text
-        elif node.tag == 'BlastOutput_query-len':
-            seq_len = int(node.text)
-    itr = './BlastOutput_iterations/Iteration/Iteration_hits/'
-    for hit in root.findall(itr):
-        features =  {
-                        "Program"   : blast_program
-                    }
-        for f in hit:
-            if f.tag == 'Hit_num':
-                features[f.tag] = int(f.text)
-            elif f.tag == 'Hit_len':
-                features[f.tag] = int(f.text)
-            elif f.tag == 'Hit_hsps':
-                pass
-            elif f.tag == 'Hit_accession':
-                features['Accession'] = f.text
-            else:
-                features[f.tag] = f.text
-            for Hit_hsps in f:
-                for Hsp in Hit_hsps:
-                    if Hsp.tag == 'Hsp_num':
-                        features[str(Hsp.tag)] = int(Hsp.text)
-                    elif Hsp.tag == 'Hsp_bit-score':
-                        features[str(Hsp.tag)] = float(Hsp.text)
-                    elif Hsp.tag == 'Hsp_score':
-                        features[str(Hsp.tag)] = int(Hsp.text)
-                    elif Hsp.tag == 'Hsp_evalue':
-                        features['E value'] = float(Hsp.text)
-                    elif Hsp.tag == 'Hsp_query-from':
-                        features[str(Hsp.tag)] = int(Hsp.text)
-                    elif Hsp.tag == 'Hsp_query-to':
-                        features[str(Hsp.tag)] = int(Hsp.text)
-                    elif Hsp.tag == 'Hsp_hit-from':
-                        features[str(Hsp.tag)] = int(Hsp.text)
-                    elif Hsp.tag == 'Hsp_hit-to':
-                        features[str(Hsp.tag)] = int(Hsp.text)
-                    elif Hsp.tag == 'Hsp_query-frame':
-                        features[str(Hsp.tag)] = int(Hsp.text)
-                    elif Hsp.tag == 'Hsp_hit-frame':
-                        features[str(Hsp.tag)] = int(Hsp.text)
-                    elif Hsp.tag == 'Hsp_identity':
-                        features[str(Hsp.tag)] = int(Hsp.text)
-                    elif Hsp.tag == 'Hsp_positive':
-                        features[str(Hsp.tag)] = int(Hsp.text)
-                    elif Hsp.tag == 'Hsp_gaps':
-                        features[str(Hsp.tag)] = int(Hsp.text)
-                    elif Hsp.tag == 'Hsp_align-len':
-                        features[str(Hsp.tag)] = int(Hsp.text)
-                    else:
-                        features[str(Hsp.tag)] = Hsp.text
-        # Calculate the percent identity
-        features['Per. Ident'] = float(features['Hsp_identity']) / features['Hsp_align-len'] * 100
-        # Calculate the Query Cover
-        features['Query Cover'] = float(features['Hsp_query-to'] - features['Hsp_query-from'] + 1) / seq_len * 100
-        out += [features]
-    return out
-    
-   
 
 def parse_args_ec_scrape(cmd_args):
     """
@@ -532,6 +459,79 @@ def parse_args_ec_scrape(cmd_args):
         print(args['--src'] + " does not exist")
         print_usage_ec_scrape()()
     return args
+    
+
+def parse_blast_xml(xml, seq_len = None):
+    """
+    Parses the xml from a blast and returns the results in a list of 
+    dictionaries.
+    
+    :param xml: The xml output as a string
+    :return: The blast data as a list of dictionaries
+    """
+    blast_program = ""
+    out = []
+    # Parse xml from a string
+    root = et.fromstring(xml)
+    for node in root:
+        if node.tag == 'BlastOutput_program':
+            blast_program = node.text
+        elif node.tag == 'BlastOutput_query-len':
+            seq_len = int(node.text)
+    itr = './BlastOutput_iterations/Iteration/Iteration_hits/'
+    for hit in root.findall(itr):
+        features =  {
+                        "Program"   : blast_program
+                    }
+        for f in hit:
+            if f.tag == 'Hit_num':
+                features[f.tag] = int(f.text)
+            elif f.tag == 'Hit_len':
+                features[f.tag] = int(f.text)
+            elif f.tag == 'Hit_hsps':
+                pass
+            elif f.tag == 'Hit_accession':
+                features['Accession'] = f.text
+            else:
+                features[f.tag] = f.text
+            for Hit_hsps in f:
+                for Hsp in Hit_hsps:
+                    if Hsp.tag == 'Hsp_num':
+                        features[str(Hsp.tag)] = int(Hsp.text)
+                    elif Hsp.tag == 'Hsp_bit-score':
+                        features[str(Hsp.tag)] = float(Hsp.text)
+                    elif Hsp.tag == 'Hsp_score':
+                        features[str(Hsp.tag)] = int(Hsp.text)
+                    elif Hsp.tag == 'Hsp_evalue':
+                        features['E value'] = float(Hsp.text)
+                    elif Hsp.tag == 'Hsp_query-from':
+                        features[str(Hsp.tag)] = int(Hsp.text)
+                    elif Hsp.tag == 'Hsp_query-to':
+                        features[str(Hsp.tag)] = int(Hsp.text)
+                    elif Hsp.tag == 'Hsp_hit-from':
+                        features[str(Hsp.tag)] = int(Hsp.text)
+                    elif Hsp.tag == 'Hsp_hit-to':
+                        features[str(Hsp.tag)] = int(Hsp.text)
+                    elif Hsp.tag == 'Hsp_query-frame':
+                        features[str(Hsp.tag)] = int(Hsp.text)
+                    elif Hsp.tag == 'Hsp_hit-frame':
+                        features[str(Hsp.tag)] = int(Hsp.text)
+                    elif Hsp.tag == 'Hsp_identity':
+                        features[str(Hsp.tag)] = int(Hsp.text)
+                    elif Hsp.tag == 'Hsp_positive':
+                        features[str(Hsp.tag)] = int(Hsp.text)
+                    elif Hsp.tag == 'Hsp_gaps':
+                        features[str(Hsp.tag)] = int(Hsp.text)
+                    elif Hsp.tag == 'Hsp_align-len':
+                        features[str(Hsp.tag)] = int(Hsp.text)
+                    else:
+                        features[str(Hsp.tag)] = Hsp.text
+        # Calculate the percent identity
+        features['Per. Ident'] = float(features['Hsp_identity']) / features['Hsp_align-len'] * 100
+        # Calculate the Query Cover
+        features['Query Cover'] = float(features['Hsp_query-to'] - features['Hsp_query-from'] + 1) / seq_len * 100
+        out += [features]
+    return out     
     
     
 def prcs_blast_rslts(filepath, args):
