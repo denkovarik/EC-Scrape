@@ -129,4 +129,9 @@ dmypy.json
 .pyre/
 
 # Unneeded Project folders
-saved_jobs
+saved_jobs/
+temp/
+blast_rslts/
+testing/test_files/test_output/
+
+
