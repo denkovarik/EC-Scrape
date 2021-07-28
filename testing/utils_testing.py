@@ -11,7 +11,49 @@ import math
 class Utils_tests(unittest.TestCase):
     """
     Runs all tests for the utility functions in utils.py.
-    """        
+    """
+    def test_cmpl_mult_seq_fasta(self):
+        """
+        Tests the utilities function 'cmpl_mult_seq_fasta()' on its ability to create a fasta file containing multiple sequences that can from a RAST genome annotation.
+        
+        :param self: An element of the Utils_tests class.
+        """
+        orig = currentdir + '\\test_files\\test_genome_annotation2.xlsx'
+        cpy = currentdir + '\\test_files\\' "test_genome_annotation_cpy.xlsx"
+        
+        email = 'dennis.kovarik@mines.sdsmt.edu'
+        out_file = "0.txt"
+        min_pct_idnt  = 95.0
+        min_qry_cvr = 90.0
+        max_blast_hits = 5
+        max_uniprot_hits = 50
+        query_id = 0
+        args =  {
+                    '--src'                     : orig,
+                    '--dest'                    : cpy,
+                    '--keywords'                : "hypothetical protein",
+                    '--visible'                 : False,
+                    '--load_job'                : None,
+                    '--email'                   : email, 
+                    '--sheet'                   : 0,
+                    '--min_pct_idnt'            : min_pct_idnt,
+                    '--min_qry_cvr'             : min_qry_cvr,
+                    '--max_blast_hits'          : max_blast_hits,
+                    '--max_uniprot_hits'        : max_uniprot_hits,
+                    '--from_downloaded_blast'   : False,
+                    '--BLAST_rslts_path'        : None,
+                }
+    
+        self.assertTrue(os.path.isfile(orig))
+        reader = Annot_Reader(args)
+        fasta = cmpl_mult_seq_fasta(reader, 'nt')
+        exp = ">contig_1_15267_15503\ngtggcagaaacagttgtaccaattacaacagataatttggaacaatgtattgaactatatattaaagtttttaatagtgagccttggaatgaaagttggacgtatgaaactgctaaagaaagacttacggatttattgcatactcctaaatttacgggatttttttggaaaaacaatgaaactccaattggttttatagcaggaaacagcaaaaaaacatatcatatcaaggaataa\n\n>contig_1_15824_16219\natgaagttttatattgcatccagctttaaaaatatcgatgcggttagatatgtaagtgaaaagctaaaaagcaagggatttattcatacatatgattggactcaaaatgaaagagcttcgaccattgaacagctaaaagaaataggtcaacgagagaaagaggctgtaatggaagctgattttctcatcgttttacttccagcaggaaaaggaagtcatattgaatttggaatagctcttggacatggcaaaaaaatttatctttactcaccaaatgacgatgtgaacaactttgaaacgaccagcacgttttatcatttacctgaagttgaaaaatgtattggaacactcgaagagttggttgatattgtttctgtgaattcaaaaatttattga\n\n>contig_1_629696_629812\natggtgcgaagaaggaaggaggaatggagaatggatgatgtcatgagacggatcctagcggttgcgggtgtggcagtatgcgtcggtctgttgtttctcgtcggtgccaacggatga\n\n"
+        self.assertTrue(fasta == exp)
+        fasta = cmpl_mult_seq_fasta(reader, 'aa')
+        exp = ">contig_1_15267_15503\nMAETVVPITTDNLEQCIELYIKVFNSEPWNESWTYETAKERLTDLLHTPKFTGFFWKNNETPIGFIAGNSKKTYHIKE\n\n>contig_1_15824_16219\nMKFYIASSFKNIDAVRYVSEKLKSKGFIHTYDWTQNERASTIEQLKEIGQREKEAVMEADFLIVLLPAGKGSHIEFGIALGHGKKIYLYSPNDDVNNFETTSTFYHLPEVEKCIGTLEELVDIVSVNSKIY\n\n>contig_1_629696_629812\nMVRRRKEEWRMDDVMRRILAVAGVAVCVGLLFLVGANG\n\n"
+        self.assertTrue(fasta == exp)
+        
+     
     def test_prcs_blast_rslts_html(self):
         """
         Runs testing for the utility function prcs_blast_rslts_html()
@@ -57,6 +99,7 @@ class Utils_tests(unittest.TestCase):
         
         :param self: An element of the Utils_tests class.
         """
+        """
         email = 'dennis.kovarik@mines.sdsmt.edu'
         out_file = "0.txt"
         min_pct_idnt  = 95.0
@@ -85,6 +128,7 @@ class Utils_tests(unittest.TestCase):
                 }
         reader = Annot_Reader(args)
         dl_blast_ec_scrape(reader, args)
+        """
         
         
     def test_check_dl_blast_args(self):
@@ -94,6 +138,7 @@ class Utils_tests(unittest.TestCase):
         blast results.
         
         :param self: An element of the Utils_tests class.
+        """
         """
         email = 'dennis.kovarik@mines.sdsmt.edu'
         out_file = "0.txt"
@@ -191,6 +236,7 @@ class Utils_tests(unittest.TestCase):
             err = True
         finally:
             self.assertFalse(err)
+        """
         
         
     def test_build_cmd(self):
@@ -199,6 +245,7 @@ class Utils_tests(unittest.TestCase):
         command to run blast.py on the command line.
         
         :param self: An element of the Utils_tests class.
+        """
         """
         seq = 'AATTGGC'
         email = 'dennis.kovarik@mines.sdsmt.edu'
@@ -228,6 +275,7 @@ class Utils_tests(unittest.TestCase):
         cmd = build_cmd(seq, out_file, query_id, args)
         exp = ["py", "blast.py", "--fasta_sequence", "AATTGGC", "--program", "blastx", "--email", "dennis.kovarik@mines.sdsmt.edu", "--out_file", "0.txt", "--id", "0", "--min_pct_idnt", "97.0", "--min_qry_cvr", "95.0", "--max_blast_hits", "10", "--max_uniprot_hits", "50"]
         self.assertTrue(cmd == exp)
+        """
         
         
     def test_prcs_blast_rslts(self):
@@ -236,6 +284,7 @@ class Utils_tests(unittest.TestCase):
         blast results and scrape online databases for the ec numbers.'
         
         :param self: An element of the Utils_tests class.
+        """
         """
         min_pct_idnt=97.0
         min_qry_cvr = 86.0
@@ -260,6 +309,7 @@ class Utils_tests(unittest.TestCase):
                 }
         self.assertTrue(os.path.isfile(path))
         rslt = prcs_blast_rslts(path, args)
+        """
         
         
     def test_tag_ec(self):
@@ -268,6 +318,7 @@ class Utils_tests(unittest.TestCase):
         'EC-Scraped EC '
         
         :param self: An element of the Utils_tests class.
+        """
         """
         # Test Case 1
         txt = 'GNAT family N-acetyltransferase, EC 2.3.1.1'
@@ -312,8 +363,8 @@ class Utils_tests(unittest.TestCase):
         txt = 'GNAT family (EC 2.3.1.1) N-acetyltransferase, (EC 2.3.1.1)'
         exp = 'GNAT family ((EC-Scraped EC 2.3.1.1)) N-acetyltransferase, ((EC-Scraped EC 2.3.1.1))'
         rslt = tag_ec(txt)
-        self.assertTrue(rslt == exp)     
-        
+        self.assertTrue(rslt == exp)
+        """        
         
     def test_extract_ec(self):
         """
@@ -321,6 +372,7 @@ class Utils_tests(unittest.TestCase):
         number from a string.
         
         :param self: An element of the Utils_tests class.
+        """
         """
         # Test Case 1
         test = 'GNAT family N-acetyltransferase, EC 2.3.1.1'
@@ -402,6 +454,7 @@ class Utils_tests(unittest.TestCase):
         rslt = extract_ec(test)
         exp = ''
         self.assertTrue(rslt == exp)
+        """
         
         
     def test_ec_scrape(self):
@@ -409,6 +462,7 @@ class Utils_tests(unittest.TestCase):
         Tests running the utility function 'ec_scrape()'.
         
         :param self: An element of the Utils_tests class.
+        """
         """
         # Test Case 1
         email = 'dennis.kovarik@mines.sdsmt.edu'
@@ -431,6 +485,7 @@ class Utils_tests(unittest.TestCase):
         rslt = ec_scrape(features, email, num_hits)
         exp = '(EC-Scraped (GNAT family N-acetyltransferase, (EC-Scraped EC 2.3.1.1) [Geobacillus sp. WSUCF-018B] UniProtKB: A0A2M9T2M7)) '
         #self.assertTrue(rslt == exp)
+        """
         
         
     def test_parse_blast_xml(self):
@@ -440,6 +495,7 @@ class Utils_tests(unittest.TestCase):
         structure.
         
         :param self: An element of the Utils_tests class.
+        """
         """
         path = currentdir + "\\test_files\\blast_Glutaminase.xml"
         self.assertTrue(os.path.isfile(path))
@@ -467,6 +523,7 @@ class Utils_tests(unittest.TestCase):
         self.assertTrue(blast_data[40]['Hit_num'] == 41)
         self.assertTrue(abs(blast_data[40]['Per. Ident'] - 85.15) < 0.01)
         self.assertTrue(abs(blast_data[40]['Query Cover'] - 87) < 1)
+        """
         
         
     def test_execution(self):
