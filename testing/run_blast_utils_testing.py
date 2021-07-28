@@ -19,7 +19,7 @@ class Run_BLAST_Utils_tests(unittest.TestCase):
         
         :param self: An instance of the Utils_tests class.
         """
-        filepath = 'E:\\blast\\mult_query.fasta'
+        filepath = currentdir + '\\test_files\\mult_query.fasta'
         self.assertTrue(os.path.isfile(filepath))
         queries = parse_fasta(filepath)
         exp = {
