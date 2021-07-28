@@ -32,7 +32,31 @@ def build_cmd(seq, out_file, query_id, args):
             "--max_blast_hits", str(args["--max_blast_hits"]), \
             "--max_uniprot_hits", str(args["--max_uniprot_hits"])]
     return cmd
+  
+  
+def cmpl_mult_seq_fasta(reader, seq_type):
+    """
+    Parses a genome annotation excel file sequences to add to a multisequence fasta 
+    file.
     
+    :param reader: An instance of the Annot_Reader class.
+    :param seq_type: Sequence type to add to fasta. keyword nt for nucleotide and aa 
+                     for amino acid seqeuence.
+    :return: String of the fasta file to write
+    """
+    seq = ""
+    fasta = ""
+    for row in reader.rows:
+        loc = reader.df['location'][row]
+        if seq_type == "nt":
+            seq = reader.df['nucleotide_sequence'][row]
+        elif seq_type == "aa":
+            seq = reader.df['aa_sequence'][row]
+        else:
+            raise Exception("Unrecognized sequence type to retieve.")
+        fasta += ">" + loc + "\n" + seq + "\n\n"
+    return fasta
+
 
 def cpu_count():
     ''' Returns the number of CPUs in the system
