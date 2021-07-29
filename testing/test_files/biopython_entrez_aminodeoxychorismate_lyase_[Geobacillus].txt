@@ -1,0 +1,76 @@
+Seq-entry ::= seq {
+  id {
+    other {
+      accession "WP_011887816",
+      version 1
+    },
+    gi 500217673
+  },
+  descr {
+    source {
+      org {
+        taxname "Geobacillus",
+        db {
+          {
+            db "taxon",
+            tag id 129337
+          }
+        },
+        orgname {
+          name partial {
+            {
+              fixed-level other,
+              level "genus",
+              name "Geobacillus"
+            }
+          },
+          lineage "Bacteria; Firmicutes; Bacilli; Bacillales; Bacillaceae",
+          gcode 11,
+          div "BCT"
+        }
+      }
+    },
+    molinfo {
+      biomol peptide,
+      completeness complete
+    },
+    create-date std {
+      year 2013,
+      month 5,
+      day 16
+    },
+    update-date std {
+      year 2017,
+      month 4,
+      day 9
+    }
+  },
+  inst {
+    repr raw,
+    mol aa,
+    length 145,
+    seq-data ncbieaa "MRKRTIRSFAFGLLVSTSIIGAAYYTSPPPESTDVDVKAYLQQHELVAVTKDEYDK
+LLSTQSKASVEQPPKQSVQTVYVYRLVIEKGDTPETFAKELEAAHIIDSARSFNDYLQKRGLAHLIRPGAYNVRSDMD
+YAAISRLITSP"
+  },
+  annot {
+    {
+      data ftable {
+        {
+          data prot {
+            name {
+              "aminodeoxychorismate lyase"
+            }
+          },
+          location int {
+            from 0,
+            to 144,
+            id gi 500217673
+          }
+        }
+      }
+    }
+  }
+}
+
+

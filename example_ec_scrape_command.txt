@@ -1,0 +1,5 @@
+:: Example for Online Version
+ec_scrape.py --src ..\RAST_Geobacillus_LC41.xlsx --dest RAST_Geobacillus_LC41_ec_scraped.xlsx --email dennis.kovarik@mines.sdsmt.edu --min_pct_idnt 98 --min_qry_cvr 90 --max_blast_hits 3 --max_uniprot_hits 3 --keywords "hypothetical protein"
+
+:: Example of the Downloaded BLAST Results Version
+ec_scrape.py --src ..\RAST_Geobacillus_LC41.xlsx --dest RAST_Geobacillus_LC41_ec_scraped.xlsx --email dennis.kovarik@mines.sdsmt.edu --min_pct_idnt 98 --min_qry_cvr 90 --max_blast_hits 3 --max_uniprot_hits 3 --keywords "hypothetical protein" --from_downloaded_blast True --BLAST_rslts_path ..\hypothetical_protein_blast_results\blastp\
