@@ -9,8 +9,7 @@ blast_working_dir = 'temp_blast\\'
 commands = []
 args = parse_args(sys.argv)
 
-
-# If the -query_parallel arg is not specified, then just run program normally
+# Compile command line arguments
 commands = compile_cmd(args, blast_rslt_dir, blast_working_dir)
 
 start_time = time.time()
