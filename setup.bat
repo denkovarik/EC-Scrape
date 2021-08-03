@@ -16,5 +16,5 @@ call py -m pip install PySimpleGUI
 call py -m pip install progress progressbar2 alive-progress tqdm
 :: Install PySimpleGUI
 call py -m pip install pysimplegui
-:: Install Requensts
+:: Install Requests
 call py -m pip install requests
