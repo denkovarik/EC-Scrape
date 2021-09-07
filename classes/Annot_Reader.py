@@ -110,18 +110,23 @@ class Annot_Reader():
         self.cols = {}
             
         
-    def compile_rows(self, keywords):
+    def compile_rows(self, keywords, has_ec=False):
         """
         Compiles a list of rows to blast.
         
         :param self: The instance of the Annot_Reader
         :param keywords: The keywords to match on
+        :param has_ec: Indicates whether to include rows where the ec number 
+                       is already included.
         """
         for ind in self.df.index:
             entry = self.df['function'][ind]
-            if Annot_Reader.matches_keywords(entry, keywords) \
-            and not Annot_Reader.has_ec(entry):
-                self.rows.add(ind)
+            if Annot_Reader.matches_keywords(entry, keywords):
+                if not has_ec:
+                    if not Annot_Reader.has_ec(entry):
+                        self.rows.add(ind)
+                else:
+                    self.rows.add(ind)
                 
         
     @staticmethod
